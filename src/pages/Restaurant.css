@@ -1,0 +1,239 @@
+/* ── Обёртка ── */
+.rs-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: linear-gradient(170deg, #1a1a2e 0%, #16213e 60%, #0f2a1e 100%);
+  overflow: hidden;
+}
+
+/* ── Верхняя строка с бейджами ── */
+.rs-info-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px 6px;
+  flex-shrink: 0;
+}
+
+.rs-badge {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #d0d8e8;
+  font-weight: 600;
+}
+
+.rs-badge.gold { color: #f5c842; border-color: rgba(245,200,66,0.3); background: rgba(245,200,66,0.08); }
+
+/* ── Сцена ── */
+.rs-scene {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 8px;
+}
+
+/* Изометрическая "сцена" — наклон через transform */
+.iso-stage {
+  position: relative;
+  width: 340px;
+  height: 300px;
+  transform: rotateX(45deg) rotateZ(-20deg);
+  transform-style: preserve-3d;
+  margin-top: -20px;
+}
+
+/* ── Пол ── */
+.iso-floor {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.iso-tile { width: 100%; height: 100%; }
+.iso-tile.t-a { background: #c8a97a; }
+.iso-tile.t-b { background: #b8956a; }
+
+/* ── Прилавок ── */
+.iso-counter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background: linear-gradient(180deg, #7a4030 0%, #5a2a18 100%);
+  border-bottom: 4px solid #3e1a0e;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 12px;
+  z-index: 2;
+  border-radius: 2px;
+}
+
+.iso-station {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 72px;
+  height: 56px;
+  border-radius: 8px;
+  border: 2px solid rgba(0,0,0,0.3);
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.iso-station.active {
+  background: linear-gradient(180deg, #a0522d, #7a3520);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.iso-station.active:hover { transform: scale(1.05); }
+
+.iso-station.locked {
+  background: rgba(0,0,0,0.3);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.station-icon { font-size: 22px; line-height: 1; }
+.station-label { font-size: 9px; color: rgba(255,255,255,0.7); font-weight: 600; }
+
+/* ── Персонажи ── */
+.iso-char {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 4;
+  transform: rotateZ(20deg) rotateX(-45deg);
+}
+
+.iso-char.chef { left: 44%; top: 10%; }
+.char-body { font-size: 26px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+
+/* ── Гости ── */
+.iso-guest {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 5;
+  cursor: pointer;
+  transform: rotateZ(20deg) rotateX(-45deg);
+  transition: transform 0.15s;
+}
+
+.iso-guest:hover { transform: rotateZ(20deg) rotateX(-45deg) scale(1.15); }
+.iso-guest:active { transform: rotateZ(20deg) rotateX(-45deg) scale(0.9); }
+
+.guest-bubble {
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin-bottom: 2px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  position: relative;
+}
+
+.guest-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: white;
+  border-bottom: 0;
+}
+
+.guest-body { font-size: 24px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4)); }
+
+/* ── Столики ── */
+.iso-table {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transform: rotateZ(20deg) rotateX(-45deg);
+  z-index: 3;
+}
+
+.table-top {
+  width: 52px;
+  height: 36px;
+  background: linear-gradient(180deg, #d4874a, #b06030);
+  border-radius: 6px;
+  border: 2px solid #8a4020;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+
+.table-chairs {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.locked-table { opacity: 0.3; }
+.table-label { font-size: 18px; }
+
+/* ── Декор ── */
+.iso-decor {
+  position: absolute;
+  font-size: 22px;
+  z-index: 3;
+  transform: rotateZ(20deg) rotateX(-45deg);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+/* ── Кнопки снизу ── */
+.rs-actions {
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-serve {
+  width: 100%;
+  max-width: 320px;
+  padding: 14px;
+  background: linear-gradient(135deg, #e94560, #c02040);
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(233,69,96,0.4);
+  transition: transform 0.1s, box-shadow 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-serve:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(233,69,96,0.3);
+}
+
+.rs-hint {
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+}

@@ -1,77 +1,109 @@
+import { useState } from 'react'
+import './Restaurant.css'
+
+interface Guest {
+  id: number
+  x: number
+  y: number
+  bubble: string
+  emoji: string
+}
+
+const GUESTS: Guest[] = [
+  { id: 1, x: 18, y: 42, bubble: '🍜', emoji: '🧑' },
+  { id: 2, x: 52, y: 38, bubble: '😋', emoji: '👩' },
+  { id: 3, x: 72, y: 55, bubble: '🍜', emoji: '🧔' },
+]
+
 export default function Restaurant() {
+  const [served, setServed] = useState(0)
+
   return (
-    <div className="restaurant-scene">
+    <div className="rs-wrap">
 
-      {/* Изометрический зал */}
-      <div className="iso-world">
+      {/* ── Верхняя панель ── */}
+      <div className="rs-info-row">
+        <div className="rs-badge">⭐ 1.0</div>
+        <div className="rs-badge">👥 {GUESTS.length} гостя</div>
+        <div className="rs-badge gold">🪙 +{served * 10}</div>
+      </div>
 
-        {/* Пол */}
-        <div className="floor">
-          {Array.from({ length: 49 }).map((_, i) => (
+      {/* ── Изометрическая сцена ── */}
+      <div className="rs-scene">
+        <div className="iso-stage">
+
+          {/* Пол — шахматная плитка */}
+          <div className="iso-floor">
+            {Array.from({ length: 48 }).map((_, i) => (
+              <div key={i} className={`iso-tile ${(Math.floor(i / 8) + i) % 2 === 0 ? 't-a' : 't-b'}`} />
+            ))}
+          </div>
+
+          {/* Прилавок */}
+          <div className="iso-counter">
+            <div className="iso-station active" title="Лапша БП">
+              <span className="station-icon">🍜</span>
+              <span className="station-label">Лапша</span>
+            </div>
+            <div className="iso-station locked" title="Откроется на ур. 3">
+              <span className="station-icon">🔒</span>
+              <span className="station-label">Суп</span>
+            </div>
+            <div className="iso-station locked" title="Откроется на ур. 5">
+              <span className="station-icon">🔒</span>
+              <span className="station-label">Гриль</span>
+            </div>
+          </div>
+
+          {/* Повар */}
+          <div className="iso-char chef">
+            <div className="char-body">👨‍🍳</div>
+          </div>
+
+          {/* Столики */}
+          <div className="iso-table" style={{ left: '8%', top: '54%' }}>
+            <div className="table-top" />
+            <div className="table-chairs">
+              <span>🪑</span><span>🪑</span>
+            </div>
+          </div>
+          <div className="iso-table" style={{ left: '42%', top: '54%' }}>
+            <div className="table-top" />
+            <div className="table-chairs">
+              <span>🪑</span><span>🪑</span>
+            </div>
+          </div>
+          <div className="iso-table locked-table" style={{ left: '72%', top: '54%' }}>
+            <div className="table-top" />
+            <div className="table-label">🔒</div>
+          </div>
+
+          {/* Гости с пузырями */}
+          {GUESTS.map(g => (
             <div
-              key={i}
-              className={`floor-tile ${(Math.floor(i / 7) + i) % 2 === 0 ? 'light' : 'dark'}`}
-            />
+              key={g.id}
+              className="iso-guest"
+              style={{ left: `${g.x}%`, top: `${g.y}%` }}
+              onClick={() => setServed(s => s + 1)}
+            >
+              <div className="guest-bubble">{g.bubble}</div>
+              <div className="guest-body">{g.emoji}</div>
+            </div>
           ))}
-        </div>
 
-        {/* Прилавок — верхняя зона */}
-        <div className="counter">
-          <div className="station" title="Лапша БП">🍜</div>
-          <div className="station" style={{ opacity: 0.35, filter: 'grayscale(1)' }}>🍲</div>
-          <div className="station" style={{ opacity: 0.35, filter: 'grayscale(1)' }}>🥩</div>
-          <div className="station" style={{ opacity: 0.35, filter: 'grayscale(1)' }}>🥘</div>
-        </div>
+          {/* Декор — растение */}
+          <div className="iso-decor" style={{ left: '88%', top: '72%' }}>🌿</div>
+          <div className="iso-decor" style={{ left: '2%', top: '72%' }}>🌿</div>
 
-        {/* Столики */}
-        {/* Столик 1 */}
-        <div className="table" style={{ left: 30, top: 90 }}>
-          <div className="chair" style={{ top: -10, left: 10 }} />
-          <div className="chair" style={{ top: -10, left: 36 }} />
-          <div className="chair" style={{ bottom: -10, left: 10 }} />
-          <div className="chair" style={{ bottom: -10, left: 36 }} />
-        </div>
-
-        {/* Столик 2 */}
-        <div className="table" style={{ left: 110, top: 90 }}>
-          <div className="chair" style={{ top: -10, left: 10 }} />
-          <div className="chair" style={{ top: -10, left: 36 }} />
-          <div className="chair" style={{ bottom: -10, left: 10 }} />
-          <div className="chair" style={{ bottom: -10, left: 36 }} />
-        </div>
-
-        {/* Столик 3 — ещё закрыт */}
-        <div className="table" style={{ left: 190, top: 90, opacity: 0.3 }}>
-          <div className="chair" style={{ top: -10, left: 10 }} />
-          <div className="chair" style={{ top: -10, left: 36 }} />
-        </div>
-
-        {/* Работник-повар */}
-        <div className="character" style={{ left: 68, top: 68 }}>
-          <div className="body">👨‍🍳</div>
-        </div>
-
-        {/* Гость 1 — ждёт заказ */}
-        <div className="character" style={{ left: 36, top: 108 }}>
-          <div className="speech-bubble">🍜</div>
-          <div className="body">🧑</div>
-        </div>
-
-        {/* Гость 2 — ест */}
-        <div className="character" style={{ left: 120, top: 108 }}>
-          <div className="speech-bubble">😋</div>
-          <div className="body">👩</div>
-        </div>
-
-        {/* Гость 3 — подходит */}
-        <div className="character" style={{ left: 150, top: 200 }}>
-          <div className="body">🧔</div>
         </div>
       </div>
 
-      {/* Плашка рейтинга */}
-      <div className="rating-bar">
-        ⭐ 1.0 &nbsp;·&nbsp; 👥 2 гостя &nbsp;·&nbsp; 🪙 +10 сейчас
+      {/* ── Кнопка обслужить ── */}
+      <div className="rs-actions">
+        <button className="btn-serve" onClick={() => setServed(s => s + 1)}>
+          🍜 Обслужить гостя
+        </button>
+        <div className="rs-hint">Нажми на гостя или кнопку</div>
       </div>
 
     </div>
