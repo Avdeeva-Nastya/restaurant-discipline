@@ -29,7 +29,7 @@ body { background: #15100C; -webkit-font-smoothing: antialiased; }
 
 
 /* --- Шапка: уровень, название, шестерёнка --- */
-.mb-hdr { padding: 12px 18px 10px; flex: none; }
+.mb-hdr { padding: 45px 18px 10px; flex: none; }
 .mb-hdr > * { animation: mbUp .5s cubic-bezier(.22,1,.36,1) both; }
 .mb-hdr > *:nth-child(2) { animation-delay: .08s; } /* вторая строка выезжает чуть позже — «ступеньки» */
 .mb-hrow { display: flex; align-items: center; gap: 10px; }
@@ -64,7 +64,7 @@ body { background: #15100C; -webkit-font-smoothing: antialiased; }
 .mb-note b { color: var(--green-deep); font-weight: 900; }
 
 /* --- Нижняя навигация --- */
-.mb-nav { flex: none; background: var(--nav); border-top: 2px solid #E3D3A8; display: flex; padding: 8px 8px 5px; gap: 2px; animation: mbUp .5s .15s cubic-bezier(.22,1,.36,1) both; }
+.mb-nav { flex: none; background: var(--nav); border-top: 2px solid #E3D3A8; display: flex; padding: 12px 8px 20px; gap: 2px; animation: mbUp .5s .15s cubic-bezier(.22,1,.36,1) both; }
 .mb-tab { flex: 1; min-width: 0; border: none; background: none; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 8px 2px; border-radius: 14px; color: #7A6647; transition: background .18s, color .18s, transform .12s; position: relative; }
 .mb-tab:active { transform: scale(.94); }
 .mb-tab .lbl { font-size: 10.5px; font-weight: 800; white-space: nowrap; }

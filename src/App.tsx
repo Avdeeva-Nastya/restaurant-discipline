@@ -4,8 +4,19 @@
    Все цифры ниже — нарисованные данные, как на картинке (ищите
    пометку «МАКЕТНЫЕ ДАННЫЕ»). Места для будущей логики помечены
    «ЯКОРЬ» — по ним другой разработчик или ИИ поймёт, куда подключаться.
-   ============================================================ */
-import "./App.css"; 
+   ============================================================ */ 
+import { useState } from "react";
+
+// ПРИНОСИМ СТРАНИЦЫ: говорим React, где лежат комнаты
+import Habits from "./pages/Habits";
+import Goals from "./pages/Goals";
+import Shop from "./pages/Shop";
+import Profile from "./pages/Profile";
+import Restaurant from "./pages/Restaurant";
+import "./App.css";
+
+
+
 
 /* ---------- Иконки ----------
    Нарисованы кодом (SVG) — векторные наклейки: не мутнеют при
@@ -46,21 +57,22 @@ function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
 
 /* ---------- Оглавление вкладок ----------*/
 
-const TABS: { id: string; label: string; icon: IconName; dot?: boolean }[] = [
-  { id: "rest", label: "Ресторан", icon: "cloche" },
-  { id: "habits", label: "Привычки", icon: "hat", dot: true },
-  { id: "goals", label: "Цели дня", icon: "book" },
-  { id: "shop", label: "Магазин", icon: "store" },
-  { id: "profile", label: "Профиль", icon: "chart" },
+const TABS = [
+  { id: "restaurant", label: "Ресторан" },
+  { id: "goals", label: "Цели" },
+  { id: "habits", label: "Привычки" },
+  { id: "shop", label: "Магазин" },
+  { id: "profile", label: "Профиль" }
 ];
 
 /* ---------- Сам экран ---------- */
 export default function App() {
   // ЯКОРЬ: здесь позже появится useState для активной вкладки, монет и т.д.
   // В макете активная вкладка задана вручную константой ниже.
-  const activeTab = "rest";
 
+  const [activeTab, setActiveTab] = useState("restaurant");
   return (
+    
     <div className="mb-root">
       <div className="mb-caption">Мур-мур бистро · Ресторан</div>
 
@@ -101,22 +113,30 @@ export default function App() {
           {/* Нижняя навигация.
               ЯКОРЬ: переключение вкладок (onClick + useState) — этап механик.
               Сейчас зелёная «таблетка» задана вручную через activeTab. */}
-          <nav className="mb-nav" aria-label="Разделы">
-            {TABS.map(t => (
-              <button
-                key={t.id}
+           {/* ОБЛАСТЬ КОНТЕНТА: показываем ту страницу, что на стикере */}
+      <div style={{ minHeight: 200, padding: 10 }}>
+        {activeTab === "Restaurant" && <Restaurant />}
+        {activeTab === "habits" && <Habits />}
+        {activeTab === "goals" && <Goals />}
+        {activeTab === "shop" && <Shop />}
+        {activeTab === "profile" && <Profile />}
+      </div>
+
+      {/* МЕНЮ: кнопки внизу */}
+      <nav  className="mb-nav" >
+        {TABS.map(tab => (
+          <button 
+            key={tab.id}
                 type="button"
-                className={"mb-tab" + (t.id === activeTab ? " is-active" : "")}
-                aria-current={t.id === activeTab ? "page" : undefined}
-              >
-                <span className="ico">
-                  <Icon name={t.icon} size={22} />
-                  {t.dot && t.id !== activeTab && <span className="mb-dot" />}
-                </span>
-                <span className="lbl">{t.label}</span>
-              </button>
-            ))}
-          </nav>
+                className ={"mb-tab" + (tab.id === activeTab ? " is-active" : "")}
+                aria-current={tab.id === activeTab ? "page" : undefined}
+            // КНОПКА ЗВОНКА: при клике переписываем стикер на id этой кнопки
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
           <div className="mb-home"><i /></div>
 
         </div>
