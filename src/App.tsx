@@ -115,7 +115,7 @@ export default function App() {
               Сейчас зелёная «таблетка» задана вручную через activeTab. */}
            {/* ОБЛАСТЬ КОНТЕНТА: показываем ту страницу, что на стикере */}
       <div style={{ minHeight: 200, padding: 10 }}>
-        {activeTab === "Restaurant" && <Restaurant />}
+        {activeTab === "restaurant" && <Restaurant />}
         {activeTab === "habits" && <Habits />}
         {activeTab === "goals" && <Goals />}
         {activeTab === "shop" && <Shop />}

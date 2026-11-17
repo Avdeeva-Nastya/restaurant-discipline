@@ -1,0 +1,233 @@
+/* ============================================================
+   Goals.css — стили страницы «Цели дня» (рабочие TODO).
+   Все цвета берутся из общих переменных проекта (index.css),
+   поэтому страница автоматически вписана в дизайн «Мур-мур
+   бистро»: тёмное дерево, золотые рамки, пиксельный стиль.
+   Префикс классов — gl (goals), чтобы не сталкиваться с
+   классами других страниц.
+   ============================================================ */
+
+/* Общая колонка страницы: шапка сверху, список тянется, подвал прижат */
+.gl-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* ── Шапка: заголовок + счётчик «создано сегодня / 3» ── */
+.gl-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 14px 8px;
+  flex-shrink: 0;
+}
+
+.gl-title {
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+/* Счётчик-«таблетка»: сразу видно, сколько целей ещё можно создать */
+.gl-counter {
+  font-size: 7px;
+  white-space: nowrap;
+  background: var(--surface-2);
+  border: 2px solid var(--wood-dark);
+  padding: 6px 8px;
+  color: var(--gold);
+}
+
+/* Просроченные цели из вчерашнего дня — красная плашка */
+.gl-overdue {
+  margin: 0 14px 6px;
+  padding: 8px 10px;
+  font-size: 7px;
+  line-height: 1.8;
+  background: rgba(224, 92, 58, 0.15); /* --accent полупрозрачный */
+  border: 2px solid var(--accent);
+  color: #f0a48b;
+  flex-shrink: 0;
+}
+
+/* ── Прокручиваемая зона со списком целей ── */
+.gl-list {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--wood-dark) transparent;
+}
+
+/* Пустой список — заботливый текст-подсказка */
+.gl-empty {
+  text-align: center;
+  font-size: 7px;
+  line-height: 2.2;
+  color: var(--text-muted);
+  padding: 24px 12px;
+}
+
+/* ══ Одна карточка-цель ══ */
+.gl-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 2px solid var(--wood-dark);
+  cursor: pointer;               /* вся карточка кликабельна = переключает галочку */
+  user-select: none;
+  transition: background 0.1s;
+}
+.gl-card:hover { background: var(--surface-2); }
+
+/* Квадратный «пиксельный» чекбокс: пустой квадратик слева */
+.gl-check {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border: 2px solid var(--text-muted);
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--green-light);
+}
+
+/* Текст цели */
+.gl-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 8px;
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+/* Награда — маленькая золотая монетка-бейдж справа */
+.gl-reward {
+  flex-shrink: 0;
+  font-size: 7px;
+  color: var(--gold);
+  background: var(--surface-2);
+  border: 2px solid var(--wood-dark);
+  padding: 4px 6px;
+}
+
+/* ── Состояние «выполнено»: галочка, зелёная рамка, зачёркнутый текст ── */
+.gl-card.done {
+  border-color: var(--green);
+  background: rgba(74, 124, 89, 0.18); /* --green полупрозрачный */
+}
+.gl-card.done .gl-check {
+  border-color: var(--green-light);
+  background: var(--green);
+}
+.gl-card.done .gl-text {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+/* ── Состояние «просрочено» (не сделано вчера): красная рамка ── */
+.gl-card.late {
+  border-color: var(--accent);
+  background: rgba(224, 92, 58, 0.10);
+}
+.gl-card.late .gl-check { border-color: var(--accent); }
+.gl-card.late .gl-text  { color: #f0a48b; }
+
+/* Кнопка-крестик: удалить цель (можно только НЕ выполненную) */
+.gl-del {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--wood-dark);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gl-del:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── Панель создания новой цели (низ экрана) ── */
+.gl-form {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px 14px;
+  flex-shrink: 0;
+}
+
+.gl-input {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 8px;
+  color: var(--text);
+  background: var(--surface);
+  border: 2px solid var(--wood-dark);
+  padding: 10px;
+}
+.gl-input:focus { outline: none; border-color: var(--gold); }
+.gl-input::placeholder { color: var(--text-muted); }
+.gl-input:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Главная кнопка — оранжевый акцент проекта */
+.gl-add {
+  font-family: inherit;
+  font-size: 8px;
+  padding: 10px 12px;
+  background: var(--accent);
+  color: #fff;
+  border: 2px solid #a33d22;      /* тёмный край кнопки — «пиксельная тень» */
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.gl-add:active { transform: translateY(2px); box-shadow: none; }
+.gl-add:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* Подсказка-предупреждение под формой (например «лимит 3 на сегодня исчерпан») */
+.gl-hint {
+  padding: 0 14px 12px;
+  font-size: 7px;
+  line-height: 1.8;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Баннер идеального дня: все цели закрыты → +5 💎 ── */
+.gl-perfect {
+  margin: 0 14px 10px;
+  padding: 10px;
+  text-align: center;
+  font-size: 8px;
+  line-height: 1.8;
+  color: var(--crystal);
+  background: rgba(96, 200, 240, 0.12);
+  border: 2px solid var(--crystal);
+  animation: glPop 0.3s ease;     /* баннер «выпрыгивает» при появлении */
+  flex-shrink: 0;
+}
+
+@keyframes glPop {
+  0%   { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+/* Забота о тех, кого укачивает: отключаем анимацию по настройке системы */
+@media (prefers-reduced-motion: reduce) {
+  .gl-perfect { animation: none; }
+}
