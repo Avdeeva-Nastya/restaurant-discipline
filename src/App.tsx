@@ -115,7 +115,10 @@ export default function App() {
               Сейчас зелёная «таблетка» задана вручную через activeTab. */}
            {/* ОБЛАСТЬ КОНТЕНТА: показываем ту страницу, что на стикере */}
       <div style={{ minHeight: 200, padding: 10 }}>
-        {activeTab === "Restaurant" && <Restaurant />}
+        {/* ИСПРАВЛЕНО: было "Restaurant" с большой буквы, а в TABS id
+            называется "restaurant" — из-за этого страница ресторана не
+            открывалась ни под какой вкладкой. Теперь имена совпадают. */}
+        {activeTab === "restaurant" && <Restaurant />}
         {activeTab === "habits" && <Habits />}
         {activeTab === "goals" && <Goals />}
         {activeTab === "shop" && <Shop />}
