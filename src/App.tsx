@@ -108,19 +108,15 @@ export default function App() {
                 <span className="mb-chip">🍽️ Сегодня: <b>12</b></span>
                 <span className="mb-chip">💝 Чаевые: <b>×1.00</b></span>
               </div>
+{/* ОБЛАСТЬ КОНТЕНТА: показываем ту страницу, что на стикере */}
+               <div style={{ minHeight: 200, padding: 10 }}>
+                  {activeTab === "restaurant" && <Restaurant />}
+                  {activeTab === "habits" && <Habits />}
+                  {activeTab === "goals" && <Goals />}
+                  {activeTab === "shop" && <Shop />}
+                  {activeTab === "profile" && <Profile />}
+                </div>
           </main>
-
-          {/* Нижняя навигация.
-              ЯКОРЬ: переключение вкладок (onClick + useState) — этап механик.
-              Сейчас зелёная «таблетка» задана вручную через activeTab. */}
-           {/* ОБЛАСТЬ КОНТЕНТА: показываем ту страницу, что на стикере */}
-      <div style={{ minHeight: 200, padding: 10 }}>
-        {activeTab === "restaurant" && <Restaurant />}
-        {activeTab === "habits" && <Habits />}
-        {activeTab === "goals" && <Goals />}
-        {activeTab === "shop" && <Shop />}
-        {activeTab === "profile" && <Profile />}
-      </div>
 
       {/* МЕНЮ: кнопки внизу */}
       <nav  className="mb-nav" >
