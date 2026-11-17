@@ -1,20 +1,24 @@
 /* ============================================================
    Goals.css — стили страницы «Цели дня» (рабочие TODO).
-   Все цвета берутся из общих переменных проекта (index.css),
-   поэтому страница автоматически вписана в дизайн «Мур-мур
-   бистро»: тёмное дерево, золотые рамки, пиксельный стиль.
+
+   ИСПРАВЛЕНИЕ ДИЗАЙНА: раньше страница была свёрстана в тёмном
+   пиксельном стиле (index.css), хотя весь экран приложения —
+   светлый «сливочный» (App.css: --cream / --green / --amber).
+   Теперь все цвета берутся из переменных App.css, а размеры
+   шрифтов — нормальные читаемые (13–22px), а не «мелкие 7px».
+
    Префикс классов — gl (goals), чтобы не сталкиваться с
    классами других страниц.
    ============================================================ */
 
-/* Общая колонка страницы: шапка сверху, список тянется, подвал прижат */
+/* Общая колонка страницы: шапка сверху, список тянется на всю
+   рабочую область, форма создания прижата к низу. */
 .gl-wrap {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  overflow: hidden;
+  flex: 1;                 /* растягиваем на ВСЮ рабочую область контейнера */
+  min-height: 0;            /* разрешаем внутренним зонам сжиматься */
+  color: var(--ink);
 }
 
 /* ── Шапка: заголовок + счётчик «создано сегодня / 3» ── */
@@ -22,209 +26,242 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 14px 14px 8px;
-  flex-shrink: 0;
+  gap: 10px;
+  flex: none;
 }
 
+/* Заголовок — крупный, как в дизайне приложения */
 .gl-title {
-  font-size: 10px;
-  line-height: 1.6;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--ink);
 }
 
 /* Счётчик-«таблетка»: сразу видно, сколько целей ещё можно создать */
 .gl-counter {
-  font-size: 7px;
+  font-size: 13px;
+  font-weight: 800;
   white-space: nowrap;
-  background: var(--surface-2);
-  border: 2px solid var(--wood-dark);
-  padding: 6px 8px;
-  color: var(--gold);
+  background: var(--cream2);
+  border: 2px solid var(--amber-line);
+  border-radius: 12px;
+  padding: 6px 11px;
+  color: var(--ink-soft);
 }
 
-/* Просроченные цели из вчерашнего дня — красная плашка */
+/* Просроченные цели из вчерашнего дня — мягкая оранжевая плашка */
 .gl-overdue {
-  margin: 0 14px 6px;
-  padding: 8px 10px;
-  font-size: 7px;
-  line-height: 1.8;
-  background: rgba(224, 92, 58, 0.15); /* --accent полупрозрачный */
-  border: 2px solid var(--accent);
-  color: #f0a48b;
-  flex-shrink: 0;
+  flex: none;
+  margin-top: 10px;
+  padding: 9px 12px;
+  font-size: 12.5px;
+  font-weight: 800;
+  background: #FBE3D3;
+  border: 2px solid #E8833A;
+  border-radius: 12px;
+  color: #A4501F;
 }
 
 /* ── Прокручиваемая зона со списком целей ── */
 .gl-list {
-  flex: 1;
+  flex: 1;                 /* ГЛАВНОЕ для «на всю рабочую область» */
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 4px 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  padding: 12px 2px 4px;
   scrollbar-width: thin;
-  scrollbar-color: var(--wood-dark) transparent;
+  scrollbar-color: #D9C48F transparent;
 }
+.gl-list::-webkit-scrollbar { width: 8px; }
+.gl-list::-webkit-scrollbar-thumb { background: #D9C48F; border-radius: 8px; }
 
-/* Пустой список — заботливый текст-подсказка */
+/* Пустой список — заботливая подсказка по центру всей зоны */
 .gl-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   text-align: center;
-  font-size: 7px;
-  line-height: 2.2;
-  color: var(--text-muted);
-  padding: 24px 12px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.6;
 }
+.gl-empty .big { font-size: 42px; }
 
 /* ══ Одна карточка-цель ══ */
 .gl-card {
+  flex: none;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: var(--surface);
-  border: 2px solid var(--wood-dark);
-  cursor: pointer;               /* вся карточка кликабельна = переключает галочку */
+  gap: 12px;
+  padding: 13px 15px;
+  background: #FFFBEE;
+  border: 2px solid var(--cream3);
+  border-radius: 16px;
+  box-shadow: 0 4px 10px -6px rgba(74, 55, 40, .35);
+  cursor: pointer;               /* вся карточка кликабельна = галочка */
   user-select: none;
-  transition: background 0.1s;
+  transition: background 0.15s, border-color 0.15s;
 }
-.gl-card:hover { background: var(--surface-2); }
+.gl-card:hover { background: var(--cream2); }
 
-/* Квадратный «пиксельный» чекбокс: пустой квадратик слева */
+/* Чекбокс — круглая кнопка слева (как hb-mark в привычках) */
 .gl-check {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  border: 2px solid var(--text-muted);
-  background: var(--surface-2);
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--green-line);
+  background: var(--green-soft);
+  color: var(--green-deep);
+  font-size: 16px;
+  font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  color: var(--green-light);
+  transition: background .15s;
 }
 
-/* Текст цели */
+/* Текст цели — нормальный читаемый размер */
 .gl-text {
   flex: 1;
   min-width: 0;
-  font-size: 8px;
-  line-height: 1.7;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
   word-break: break-word;
 }
 
-/* Награда — маленькая золотая монетка-бейдж справа */
+/* Награда — золотая «монетка»-бейдж справа */
 .gl-reward {
-  flex-shrink: 0;
-  font-size: 7px;
-  color: var(--gold);
-  background: var(--surface-2);
-  border: 2px solid var(--wood-dark);
-  padding: 4px 6px;
+  flex: none;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--green-deep);
+  background: var(--amber-soft);
+  border: 2px solid var(--amber-line);
+  border-radius: 11px;
+  padding: 5px 9px;
+  white-space: nowrap;
 }
 
-/* ── Состояние «выполнено»: галочка, зелёная рамка, зачёркнутый текст ── */
+/* ── Состояние «выполнено»: зелёная рамка, залитый чекбокс, зачёркнутый текст ── */
 .gl-card.done {
-  border-color: var(--green);
-  background: rgba(74, 124, 89, 0.18); /* --green полупрозрачный */
+  border-color: var(--green-line);
+  background: var(--green-soft);
 }
 .gl-card.done .gl-check {
-  border-color: var(--green-light);
   background: var(--green);
+  border-color: var(--green-deep);
+  color: #fff;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .16);
 }
 .gl-card.done .gl-text {
-  color: var(--text-muted);
+  color: var(--ink-soft);
   text-decoration: line-through;
 }
 
-/* ── Состояние «просрочено» (не сделано вчера): красная рамка ── */
+/* ── Состояние «просрочено» (не сделано вчера): оранжевая рамка ── */
 .gl-card.late {
-  border-color: var(--accent);
-  background: rgba(224, 92, 58, 0.10);
+  border-color: #E8833A;
+  background: #FBE3D3;
 }
-.gl-card.late .gl-check { border-color: var(--accent); }
-.gl-card.late .gl-text  { color: #f0a48b; }
+.gl-card.late .gl-check { border-color: #E8833A; color: #A4501F; background: #fff; }
+.gl-card.late .gl-text  { color: #A4501F; }
 
 /* Кнопка-крестик: удалить цель (можно только НЕ выполненную) */
 .gl-del {
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  border: 2px solid var(--wood-dark);
-  background: var(--surface-2);
-  color: var(--text-muted);
-  font-family: inherit;
-  font-size: 8px;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 2px solid var(--cream3);
+  background: var(--cream2);
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 900;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: color .15s, border-color .15s;
 }
-.gl-del:hover { color: var(--accent); border-color: var(--accent); }
+.gl-del:hover { color: #C0392B; border-color: #E8833A; }
 
-/* ── Панель создания новой цели (низ экрана) ── */
+/* ── Баннер идеального дня: все цели закрыты → +5 💎 ── */
+.gl-perfect {
+  flex: none;
+  margin-top: 10px;
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 900;
+  color: var(--green-deep);
+  background: var(--green-soft);
+  border: 2px solid var(--green-line);
+  border-radius: 13px;
+  animation: glPop .3s ease;     /* баннер «выпрыгивает» при появлении */
+}
+
+@keyframes glPop {
+  0%   { transform: scale(.9); opacity: 0; }
+  100% { transform: scale(1);  opacity: 1; }
+}
+
+/* ── Панель создания новой цели (низ рабочей области) ── */
 .gl-form {
+  flex: none;
   display: flex;
   gap: 8px;
-  padding: 10px 14px 14px;
-  flex-shrink: 0;
+  margin-top: 12px;
 }
 
 .gl-input {
   flex: 1;
   min-width: 0;
   font-family: inherit;
-  font-size: 8px;
-  color: var(--text);
-  background: var(--surface);
-  border: 2px solid var(--wood-dark);
-  padding: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  background: #FFFBEE;
+  border: 2px solid var(--cream3);
+  border-radius: 13px;
+  padding: 10px 13px;
 }
-.gl-input:focus { outline: none; border-color: var(--gold); }
-.gl-input::placeholder { color: var(--text-muted); }
-.gl-input:disabled { opacity: 0.45; cursor: not-allowed; }
+.gl-input:focus { outline: none; border-color: var(--green-line); }
+.gl-input::placeholder { color: var(--ink-soft); }
+.gl-input:disabled { opacity: .5; cursor: not-allowed; }
 
-/* Главная кнопка — оранжевый акцент проекта */
+/* ГЛАВНАЯ КНОПКА «ПЛЮСИК»: крупная матчевая «+», как в дизайне */
 .gl-add {
-  font-family: inherit;
-  font-size: 8px;
-  padding: 10px 12px;
-  background: var(--accent);
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  border: none;
+  background: var(--green);
   color: #fff;
-  border: 2px solid #a33d22;      /* тёмный край кнопки — «пиксельная тень» */
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
   cursor: pointer;
-  white-space: nowrap;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .18), 0 6px 12px -6px rgba(63, 97, 64, .55);
+  transition: transform .12s;
 }
 .gl-add:active { transform: translateY(2px); box-shadow: none; }
-.gl-add:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.gl-add:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
 
-/* Подсказка-предупреждение под формой (например «лимит 3 на сегодня исчерпан») */
+/* Подсказка-предупреждение под формой (например «лимит 3 исчерпан») */
 .gl-hint {
-  padding: 0 14px 12px;
-  font-size: 7px;
-  line-height: 1.8;
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-/* ── Баннер идеального дня: все цели закрыты → +5 💎 ── */
-.gl-perfect {
-  margin: 0 14px 10px;
-  padding: 10px;
-  text-align: center;
-  font-size: 8px;
-  line-height: 1.8;
-  color: var(--crystal);
-  background: rgba(96, 200, 240, 0.12);
-  border: 2px solid var(--crystal);
-  animation: glPop 0.3s ease;     /* баннер «выпрыгивает» при появлении */
-  flex-shrink: 0;
-}
-
-@keyframes glPop {
-  0%   { transform: scale(0.85); opacity: 0; }
-  100% { transform: scale(1);    opacity: 1; }
+  flex: none;
+  margin-top: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--ink-soft);
 }
 
 /* Забота о тех, кого укачивает: отключаем анимацию по настройке системы */

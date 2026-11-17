@@ -146,10 +146,12 @@ export default function Goals() {
       {/* Список целей: сначала сегодняшние, потом просроченные */}
       <div className="gl-list">
         {goals.length === 0 && (
-          <p className="gl-empty">
+          /* Пустой список — крупная подсказка по центру всей зоны */
+          <div className="gl-empty">
+            <span className="big">✅</span>
             Пока пусто. Придумай цель на сегодня!<br />
             Можно создавать не более {MAX_PER_DAY} целей в день.
-          </p>
+          </div>
         )}
 
         {/* .map превращает каждый объект цели в карточку */}

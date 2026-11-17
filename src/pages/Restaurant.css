@@ -3,7 +3,11 @@
 .rs-wrap {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  /* flex:1 вместо height:100% — страница ресторана теперь живёт
+     внутри общего контейнера <main> и растягивается на всю его
+     рабочую область (min-height даёт сцене минимальный размер). */
+  flex: 1;
+  min-height: 420px;
   background: var(--bg);
   overflow: hidden;
 }
