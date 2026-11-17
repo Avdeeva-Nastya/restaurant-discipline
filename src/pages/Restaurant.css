@@ -1,6 +1,4 @@
-/* ════════════════════════════════════
-   РЕСТОРАН — ЗАЛ СВЕРХУ / КУХНЯ СНИЗУ
-   ════════════════════════════════════ */
+
 
 .rs-wrap {
   display: flex;
@@ -15,9 +13,7 @@
   display: flex;
   gap: 6px;
   padding: 8px 12px;
-  flex-shrink: 0;
-  background: var(--surface);
-  border-bottom: 2px solid var(--wood-dark);
+  
 }
 
 .rs-stat {
@@ -30,7 +26,7 @@
   font-size: 7px;
   color: var(--text);
 }
-.rs-stat.gold    { color: var(--gold); }
+.gold    { height: 20px; }
 .rs-stat.crystal { color: var(--crystal); }
 
 /* ── Сцена ── */
@@ -265,11 +261,18 @@
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   grid-template-rows: repeat(4, 1fr);
 }
-.floor-tile.ka { background: #a08060; }
-.floor-tile.kb { background: #907050; }
+.floor-tile.kf,
+.floor-tile.ka,
+.floor-tile.kb {
+  background-color: #8d6b43;
+  background-image: url('../assets/t3.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 
 /* ── Строки рабочих поверхностей ── */
 .worktop-row {
