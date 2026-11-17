@@ -1,0 +1,58 @@
+diff --git a/src/App.tsx b/src/App.tsx
+index a0f96a3..f97f2fe 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -99,29 +99,33 @@ export default function App() {
+             </div>
+           </header>
+ 
+-          {/* Контент: иллюстрация зала + статичные информационные карточки */}
+-          <main className="mb-content mb-scroll">
+-          
+-              {/* МАКЕТНЫЕ ДАННЫЕ: цифры ниже нарисованы для красоты макета */}
+-              <div className="mb-chips">
+-                <span className="mb-chip">🐈 В зале: <b>2/4</b></span>
+-                <span className="mb-chip">🍽️ Сегодня: <b>12</b></span>
+-                <span className="mb-chip">💝 Чаевые: <b>×1.00</b></span>
++          {/* Контент: единственная прокручиваемая зона между шапкой и меню.
++              Раньше страницы обрезались до 200px (div c minHeight) — теперь
++              это один <main>, который тянется от шапки до меню на всю
++              рабочую область; height:100% даёт страницам реальную высоту,
++              а overflow:hidden запрещает двойную прокрутку. */}
++          <main className="mb-content mb-scroll" style={{ display: "flex", flexDirection: "column", overflow: "hidden", padding: "14px 16px" }}>
++            {/* activeTab — стикер с id вкладки; показываем нужную страницу */}
++            {activeTab === "restaurant" && (
++              /* Ресторан: его разметка осталась прежней — чипы с МАКЕТНЫМИ
++                 данными просто переехали внутрь своей вкладки. */
++              <div className="mb-page" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" }}>
++                <div className="mb-chips">
++                  <span className="mb-chip">🐈 В зале: <b>2/4</b></span>
++                  <span className="mb-chip">🍽️ Сегодня: <b>12</b></span>
++                  <span className="mb-chip">💝 Чаевые: <b>×1.00</b></span>
++                </div>
++                <Restaurant />
+               </div>
++            )}
++            {/* Цели и привычки: flex:1 + minHeight:0 — занимают ВСЮ
++                рабочую область, их внутренние списки скроллятся сами */}
++            {activeTab === "habits" && <div style={{ flex: 1, minHeight: 0, marginBottom: -14 }}><Habits /></div>}
++            {activeTab === "goals" && <div style={{ flex: 1, minHeight: 0, marginBottom: -14 }}><Goals /></div>}
++            {activeTab === "shop" && <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" }}><Shop /></div>}
++            {activeTab === "profile" && <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" }}><Profile /></div>}
+           </main>
+ 
+-          {/* Нижняя навигация.
+-              ЯКОРЬ: переключение вкладок (onClick + useState) — этап механик.
+-              Сейчас зелёная «таблетка» задана вручную через activeTab. */}
+-           {/* ОБЛАСТЬ КОНТЕНТА: показываем ту страницу, что на стикере */}
+-      <div style={{ minHeight: 200, padding: 10 }}>
+-        {activeTab === "Restaurant" && <Restaurant />}
+-        {activeTab === "habits" && <Habits />}
+-        {activeTab === "goals" && <Goals />}
+-        {activeTab === "shop" && <Shop />}
+-        {activeTab === "profile" && <Profile />}
+-      </div>
+-
+       {/* МЕНЮ: кнопки внизу */}
+       <nav  className="mb-nav" >
+         {TABS.map(tab => (

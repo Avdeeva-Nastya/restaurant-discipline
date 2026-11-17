@@ -1,0 +1,314 @@
+diff --git a/src/pages/Habits.css b/src/pages/Habits.css
+new file mode 100644
+index 0000000..102242d
+--- /dev/null
++++ b/src/pages/Habits.css
+@@ -0,0 +1,308 @@
++/* ============================================================
++   Habits.css — стили страницы «Привычки».
++
++   ВАЖНО: дизайн здесь НЕ тёмный пиксельный (как в index.css),
++   а светлый «сливочный», как в App.css — потому что привычки
++   живут ВНУТРИ экрана .mb-screen, где действуют переменные
++   --cream / --green / --amber. Поэтому все цвета взяты из
++   этих переменных — страница автоматически совпадает с макетом.
++
++   Префикс классов — hb (habits), чтобы не сталкиваться с
++   классами других страниц.
++   ============================================================ */
++
++/* Общая колонка: занимает ВСЮ рабочую область между шапкой и меню.
++   flex:1 + min-height:0 — растягиваемся внутри контейнера <main>,
++   список тянется на всю высоту, панель создания прижата к низу. */
++.hb-wrap {
++  display: flex;
++  flex-direction: column;
++  flex: 1;
++  min-height: 0;            /* разрешаем внутренним зонам сжиматься */
++  color: var(--ink);
++}
++
++/* ── Шапка блока: заголовок + счётчик «создано сегодня / 3» ── */
++.hb-head {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 10px;
++  flex: none;
++}
++
++/* Заголовок — крупный, как в дизайне приложения (а не мелкий пиксельный) */
++.hb-title {
++  font-size: 22px;
++  font-weight: 900;
++  color: var(--ink);
++}
++
++/* Таблетка-счётчик: сразу видно, сколько привычек ещё можно создать */
++.hb-counter {
++  font-size: 13px;
++  font-weight: 800;
++  white-space: nowrap;
++  background: var(--cream2);
++  border: 2px solid var(--amber-line);
++  border-radius: 12px;
++  padding: 6px 11px;
++  color: var(--ink-soft);
++}
++
++/* Плашка о просроченных днях привычек (красновато-оранжевая, мягкая) */
++.hb-overdue {
++  flex: none;
++  margin-top: 10px;
++  padding: 9px 12px;
++  font-size: 12.5px;
++  font-weight: 800;
++  background: #FBE3D3;
++  border: 2px solid #E8833A;
++  border-radius: 12px;
++  color: #A4501F;
++}
++
++/* ── Прокручиваемая зона со списком: тянется на всю доступную высоту ── */
++.hb-list {
++  flex: 1;                 /* ГЛАВНОЕ для «на всю рабочую область» */
++  min-height: 0;
++  overflow-y: auto;
++  overscroll-behavior: contain;
++  display: flex;
++  flex-direction: column;
++  gap: 10px;
++  padding: 12px 2px 4px;
++  scrollbar-width: thin;
++  scrollbar-color: #D9C48F transparent;
++}
++.hb-list::-webkit-scrollbar { width: 8px; }
++.hb-list::-webkit-scrollbar-thumb { background: #D9C48F; border-radius: 8px; }
++
++/* Пустой список — заботливая подсказка по центру всей зоны */
++.hb-empty {
++  flex: 1;
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  justify-content: center;
++  gap: 8px;
++  text-align: center;
++  color: var(--ink-soft);
++  font-size: 14px;
++  font-weight: 700;
++  line-height: 1.6;
++}
++.hb-empty .big { font-size: 42px; }
++
++/* ══ Одна карточка-привычка ══ */
++.hb-card {
++  flex: none;
++  display: flex;
++  align-items: center;
++  gap: 12px;
++  padding: 12px 14px;
++  background: #FFFBEE;
++  border: 2px solid var(--cream3);
++  border-radius: 16px;
++  box-shadow: 0 4px 10px -6px rgba(74, 55, 40, .35);
++}
++
++/* Иконка привычки — круглая «наклейка» слева */
++.hb-emoji {
++  flex: none;
++  width: 42px;
++  height: 42px;
++  border-radius: 12px;
++  background: var(--green-soft);
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  font-size: 22px;
++}
++
++/* Средина карточки: название + полоска прогресса */
++.hb-mid {
++  flex: 1;
++  min-width: 0;            /* чтобы длинное имя не растягивало карточку */
++  display: flex;
++  flex-direction: column;
++  gap: 6px;
++}
++
++.hb-name {
++  font-size: 15px;
++  font-weight: 900;
++  word-break: break-word;
++}
++
++/* Полоска «серия дней»: заполняется зелёным по мере streak */
++.hb-bar {
++  height: 10px;
++  border-radius: 6px;
++  background: var(--cream2);
++  border: 1.5px solid var(--cream3);
++  overflow: hidden;
++}
++.hb-bar > i {
++  display: block;
++  height: 100%;
++  border-radius: 6px;
++  background: linear-gradient(90deg, var(--green), var(--green-light, #7FA37A));
++  transition: width .3s ease;
++}
++
++/* Подписи под полоской: серия дней + награда */
++.hb-meta {
++  display: flex;
++  align-items: center;
++  gap: 10px;
++  font-size: 11.5px;
++  font-weight: 800;
++  color: var(--ink-soft);
++}
++.hb-streak { color: #E8833A; }        /* 🔥 серия — оранжевый маячок дизайна */
++.hb-reward { color: var(--green-deep); } /* 💎 награда — матча */
++
++/* Кнопка «сегодня сделано»: большая, круглая, кликабельная */
++.hb-mark {
++  flex: none;
++  width: 44px;
++  height: 44px;
++  border-radius: 50%;
++  border: 2px solid var(--green-line);
++  background: var(--green-soft);
++  color: var(--green-deep);
++  font-size: 20px;
++  font-weight: 900;
++  cursor: pointer;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  transition: transform .12s, background .15s;
++}
++.hb-mark:hover { background: #D6E8CE; }
++.hb-mark:active { transform: scale(.9); }
++
++/* Выполнено сегодня — кнопка становится залитой зелёной «таблеткой» */
++.hb-mark.on {
++  background: var(--green);
++  border-color: var(--green-deep);
++  color: #fff;
++  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .16);
++}
++
++/* Карточка выполнена полностью (серия закрыта) — золотая рамка */
++.hb-card.complete {
++  border-color: var(--amber-line);
++  background: var(--amber-soft);
++}
++
++/* Крестик удаления (только для привычек, созданных сегодня) */
++.hb-del {
++  flex: none;
++  width: 30px;
++  height: 30px;
++  border-radius: 10px;
++  border: 2px solid var(--cream3);
++  background: var(--cream2);
++  color: var(--ink-soft);
++  font-size: 14px;
++  font-weight: 900;
++  cursor: pointer;
++  transition: color .15s, border-color .15s;
++}
++.hb-del:hover { color: #C0392B; border-color: #E8833A; }
++
++/* ── Баннер идеального дня: все сегодняшние отметки закрыты ── */
++.hb-perfect {
++  flex: none;
++  margin-top: 10px;
++  padding: 10px 12px;
++  text-align: center;
++  font-size: 13.5px;
++  font-weight: 900;
++  color: var(--green-deep);
++  background: var(--green-soft);
++  border: 2px solid var(--green-line);
++  border-radius: 13px;
++  animation: hbPop .3s ease;
++}
++
++@keyframes hbPop {
++  0%   { transform: scale(.9); opacity: 0; }
++  100% { transform: scale(1);  opacity: 1; }
++}
++
++/* ── ПАНЕЛЬ СОЗДАНИЯ ПРИВЫЧКИ (низ рабочей области) ──
++   Именно здесь lives «плюсик»: большая оранжевая кнопка "+". */
++.hb-form {
++  flex: none;
++  display: flex;
++  gap: 8px;
++  margin-top: 12px;
++}
++
++/* Выбор эмодзи — квадратная кнопка-иконка перед полем ввода */
++.hb-pick {
++  flex: none;
++  width: 46px;
++  height: 46px;
++  border-radius: 13px;
++  border: 2px solid var(--cream3);
++  background: #FFFBEE;
++  font-size: 22px;
++  cursor: pointer;
++  transition: transform .12s;
++}
++.hb-pick:active { transform: scale(.92); }
++
++.hb-input {
++  flex: 1;
++  min-width: 0;
++  font-family: inherit;
++  font-size: 14px;
++  font-weight: 700;
++  color: var(--ink);
++  background: #FFFBEE;
++  border: 2px solid var(--cream3);
++  border-radius: 13px;
++  padding: 10px 13px;
++}
++.hb-input:focus { outline: none; border-color: var(--green-line); }
++.hb-input::placeholder { color: var(--ink-soft); }
++.hb-input:disabled { opacity: .5; cursor: not-allowed; }
++
++/* ГЛАВНАЯ КНОПКА «ПЛЮСИК»: крупная, матчевая, как акцент дизайна */
++.hb-add {
++  flex: none;
++  width: 46px;
++  height: 46px;
++  border-radius: 13px;
++  border: none;
++  background: var(--green);
++  color: #fff;
++  font-size: 26px;
++  font-weight: 900;
++  line-height: 1;
++  cursor: pointer;
++  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .18), 0 6px 12px -6px rgba(63, 97, 64, .55);
++  transition: transform .12s;
++}
++.hb-add:active { transform: translateY(2px); box-shadow: none; }
++.hb-add:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
++
++/* Подсказка под панелью создания: меняет текст по ситуации */
++.hb-hint {
++  flex: none;
++  margin-top: 8px;
++  font-size: 11.5px;
++  font-weight: 700;
++  line-height: 1.5;
++  color: var(--ink-soft);
++}
++
++/* Забота о тех, кого укачивает: отключаем анимацию по настройке системы */
++@media (prefers-reduced-motion: reduce) {
++  .hb-perfect { animation: none; }
++}
