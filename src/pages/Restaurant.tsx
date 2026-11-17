@@ -35,6 +35,7 @@ let coinId  = 0
 
 export default function Restaurant() {
   const [coins,    setCoins]    = useState(120)
+  const [crystals] = useState(8)
   const [rating,   setRating]   = useState(1.0)
   const [guests,   setGuests]   = useState<Guest[]>([])
   const [floats,   setFloats]   = useState<FloatingCoin[]>([])
