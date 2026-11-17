@@ -37,8 +37,15 @@
   color: var(--ink);
 }
 
-/* Счётчик-«таблетка»: сразу видно, сколько целей ещё можно создать */
+/* Счётчик-«таблетка»: сколько целей ещё можно создать.
+   display:flex + center/center — текст строго по центру
+   по горизонтали и вертикали, даже когда задаёте width/height вручную. */
 .gl-counter {
+  display: inline-flex;      /* флекс нужен, чтобы text-align/align-свойства работали */
+  align-items: center;       /* центрирование текста по вертикали */
+  justify-content: center;   /* центрирование текста по горизонтали */
+  text-align: center;        /* на всякий случай для многострочного текста */
+  box-sizing: border-box;    /* width/height включают padding и border — рамка не «прыгает» */
   font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
