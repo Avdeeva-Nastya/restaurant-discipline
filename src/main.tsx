@@ -1,17 +1,11 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App'
-import './index.css'
+// Точка входа: берёт компонент App и «вставляет» его в <div id="root">.
+// Этот файл не трогаем — он просто выключатель света в комнате.
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.tsx";
 
-// Инициализируем Telegram WebApp
-const tg = (window as any).Telegram?.WebApp
-if (tg) {
-  tg.ready()
-  tg.expand()
-}
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
     <App />
-  </React.StrictMode>
-)
+  </StrictMode>,
+);

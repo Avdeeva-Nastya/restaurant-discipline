@@ -1,184 +1,93 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
 
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+/* --- Общий сброс: убираем заводские отступы браузера --- */
+html, body, #root { margin: 0; padding: 0; width: 100%; min-height: 100%; }
+body { background: #15100C; -webkit-font-smoothing: antialiased; }
+.mb-root, .mb-root * { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* --- ПАЛИТРА КРАСОК (переменные) ---*/
+.mb-root {
+  --cream: #FDF7E4;      /* сливочный фон экрана */
+  --cream2: #F6ECCF;     /* фон потемнее: подложки, кнопки-иконки */
+  --cream3: #EFE0B4;     /* рамки карточек */
+  --nav: #F0E3C0;        /* нижняя панель */
+  --ink: #4A3728;        /* основной текст: горький шоколад */
+  --ink-soft: #8A7358;   /* второстепенный текст: кофе с молоком */
+  --green: #557B54;      /* главный акцент: матча (активная вкладка, бейдж) */
+  --green-deep: #3F6140; /* тень матчи */
+  --green-soft: #E4EFDD; /* светлая матча: подложки */
+  --green-line: #7FA37A; /* рамка кристаллов */
+  --amber: #F4C64F;      /* мёд: монеты */
+  --amber-soft: #FBEBB8; /* светлый мёд */
+  --amber-line: #E0B152; /* рамка монет */
+
+
+  font-family: 'Nunito', system-ui, sans-serif;
 }
 
-.hero {
-  position: relative;
+/* Экран: вертикальная колонка. Шапка сверху, панель снизу, контент между ними */
+.mb-screen { width: 100%; height: 100%; background: var(--cream); display: flex; flex-direction: column; position: relative; overflow: hidden; }
 
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
 
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
+/* --- Шапка: уровень, название, шестерёнка --- */
+.mb-hdr { padding: 12px 18px 10px; flex: none; }
+.mb-hdr > * { animation: mbUp .5s cubic-bezier(.22,1,.36,1) both; }
+.mb-hdr > *:nth-child(2) { animation-delay: .08s; } /* вторая строка выезжает чуть позже — «ступеньки» */
+.mb-hrow { display: flex; align-items: center; gap: 10px; }
+.mb-lvl { background: var(--green); color: #fff; font-weight: 900; font-size: 16px; padding: 5px 10px; border-radius: 10px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.15); }
+.mb-title { font-size: 21px; font-weight: 900; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mb-icobtn { width: 36px; height: 36px; flex: none; border-radius: 11px; border: none; background: var(--cream2); color: var(--ink); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .12s, background .15s; }
+.mb-icobtn:hover { background: var(--cream3); }
+.mb-icobtn:active { transform: scale(.92); } /* тактильный «нажим» — чистый CSS, не механика */
 
-  .framework,
-  .vite {
-    position: absolute;
-  }
+/* --- Кошелёк: монеты, кристаллы, доход --- */
+.mb-wallet { display: flex; align-items: center; gap: 9px; margin-top: 13px; }
+.mb-pill { display: flex; align-items: center; gap: 7px; font-weight: 900; font-size: 16px; padding: 6px 13px; border-radius: 13px; }
+.mb-pill.coin { background: var(--amber-soft); border: 2px solid var(--amber-line); }
+.mb-pill.gem { background: var(--green-soft); border: 2px solid var(--green-line); font-size: 15px; }
+.mb-income { margin-left: auto; background: var(--cream2); color: #5B8C5A; font-weight: 900; font-size: 13.5px; padding: 8px 12px; border-radius: 11px; white-space: nowrap; }
 
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
+/* --- Контент: единственная прокручиваемая зона --- */
+.mb-content { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px 16px; }
+/* Полоса прокрутки в цветах кафе, а не серая системная */
+.mb-scroll { scrollbar-width: thin; scrollbar-color: #D9C48F transparent; }
+.mb-scroll::-webkit-scrollbar { width: 8px; }
+.mb-scroll::-webkit-scrollbar-track { background: transparent; }
+.mb-scroll::-webkit-scrollbar-thumb { background: #D9C48F; border-radius: 8px; border: 2px solid var(--cream); }
+.mb-scroll::-webkit-scrollbar-thumb:hover { background: #C9AE6E; }
+.mb-page { animation: mbUp .35s cubic-bezier(.22,1,.36,1) both; display: flex; flex-direction: column; gap: 12px; }
 
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+/* --- Информационные чипы  --- */
+.mb-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.mb-chip { display: flex; align-items: center; gap: 6px; background: #FFFBEE; border: 2px solid var(--cream3); border-radius: 11px; padding: 6px 11px; font-size: 12.5px; font-weight: 800; }
+.mb-chip b { font-weight: 900; color: var(--green-deep); }
+.mb-note { background: var(--cream2); border-radius: 13px; padding: 10px 13px; font-size: 12px; font-weight: 700; color: var(--ink-soft); line-height: 1.5; }
+.mb-note b { color: var(--green-deep); font-weight: 900; }
+
+/* --- Нижняя навигация --- */
+.mb-nav { flex: none; background: var(--nav); border-top: 2px solid #E3D3A8; display: flex; padding: 8px 8px 5px; gap: 2px; animation: mbUp .5s .15s cubic-bezier(.22,1,.36,1) both; }
+.mb-tab { flex: 1; min-width: 0; border: none; background: none; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 8px 2px; border-radius: 14px; color: #7A6647; transition: background .18s, color .18s, transform .12s; position: relative; }
+.mb-tab:active { transform: scale(.94); }
+.mb-tab .lbl { font-size: 10.5px; font-weight: 800; white-space: nowrap; }
+
+/* Активная вкладка — зелёная «таблетка». В макете класс задан вручную */
+.mb-tab.is-active { background: var(--green); color: #fff; box-shadow: inset 0 -3px 0 rgba(0,0,0,.16), 0 6px 12px -6px rgba(63,97,64,.55); }
+.mb-tab.is-active .lbl { font-weight: 900; }
+.mb-tab .ico { position: relative; display: flex; }
+
+/* Оранжевый маячок «есть незавершённые привычки» */
+.mb-dot { position: absolute; top: -2px; right: -5px; width: 8px; height: 8px; border-radius: 50%; background: #E8833A; border: 1.5px solid var(--nav); animation: mbPing 2s ease-in-out infinite; }
+
+
+/* --- Keyframes: покадровые сценарии анимаций --- */
+
+
+/* --- Телефон: на узких экранах макет занимает весь экран без рамки --- */
+@media (max-width: 520px) {
+  .mb-root { padding: 0; }
+  .mb-caption { display: none; }
+  .mb-frame { width: 100%; height: 100vh; height: 100dvh; border-radius: 0; border: none; box-shadow: none; }
 }
-
-#center {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
-}
-
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
-}
-
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
-}
-
-.ticks {
-  position: relative;
-  width: 100%;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
-
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+/* Забота о тех, кого укачивает: отключаем движение по настройке системы */
+@media (prefers-reduced-motion: reduce) {
+  .mb-root *, .mb-root *::before, .mb-root *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
