@@ -2,7 +2,12 @@
 /* --- Общий сброс: убираем заводские отступы браузера --- */
 html, body, #root { margin: 0; padding: 0; width: 100%; min-height: 100%; }
 body { background: #15100C; -webkit-font-smoothing: antialiased; }
-.mb-root, .mb-root * { box-sizing: border-box; margin: 0; padding: 0; }
+/* Сбрасываем заводские отступы только у блочных элементов-«заглушек».
+   Элементам с собственными классами (gl-*, hb-* и т.п.) НЕ трогаем
+   margin/padding — иначе этот сброс перебивает их стили из Goals.css/Habits.css. */
+.mb-root * { box-sizing: border-box; }
+.mb-root h1, .mb-root h2, .mb-root h3, .mb-root p,
+.mb-root ul, .mb-root ol, .mb-root figure { margin: 0; padding: 0; }
 
 /* --- ПАЛИТРА КРАСОК (переменные) ---*/
 .mb-root {
