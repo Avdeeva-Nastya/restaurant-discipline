@@ -5,7 +5,8 @@
    пометку «МАКЕТНЫЕ ДАННЫЕ»). Места для будущей логики помечены
    «ЯКОРЬ» — по ним другой разработчик или ИИ поймёт, куда подключаться.
    ============================================================ */ 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { loadWallet, onWalletChange } from "./lib/wallet";
 
 // ПРИНОСИМ СТРАНИЦЫ: говорим React, где лежат комнаты
 import Habits from "./pages/Habits";
@@ -71,6 +72,14 @@ export default function App() {
   // В макете активная вкладка задана вручную константой ниже.
 
   const [activeTab, setActiveTab] = useState("restaurant");
+   const [gems, setGems] = useState(() => loadWallet().gems);
+  useEffect(() => {
+    const off = onWalletChange(setGems);
+    const onStorage = () => setGems(loadWallet().gems);
+    window.addEventListener("storage", onStorage);
+    return () => { off(); window.removeEventListener("storage", onStorage); };
+  }, []);
+
   return (
     
     <div className="mb-root">
@@ -94,7 +103,7 @@ export default function App() {
             {/* Кошелёк. МАКЕТНЫЕ ДАННЫЕ: 12 450 монет, 85 кристаллов, +240/мин */}
             <div className="mb-wallet">
               <span className="mb-pill coin" title="Монеты"><Icon name="coin" size={20} /> 12 450</span>
-              <span className="mb-pill gem" title="Кристаллы"><Icon name="gem" size={18} /> 85</span>
+              <span className="mb-pill gem" title="Кристаллы"><Icon name="gem" size={18} /> {gems}</span>
               <span className="mb-income" title="Пассивный доход">+240 / мин</span>
             </div>
           </header>

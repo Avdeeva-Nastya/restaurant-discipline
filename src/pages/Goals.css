@@ -48,9 +48,12 @@
 
 /* Просроченные цели из вчерашнего дня — мягкая оранжевая плашка */
 .gl-overdue {
-  flex: none;
-  margin-top: 10px;
-  padding: 9px 12px;
+  display: flex;               
+  align-items: center;
+  height: 28px;
+  align-self: stretch;         /* ширина = вся рабочая область */
+  margin: 5px 0;        
+  padding:  0px 10px;      
   font-size: 12.5px;
   font-weight: 800;
   background: #FBE3D3;
@@ -58,7 +61,6 @@
   border-radius: 12px;
   color: #A4501F;
 }
-
 /* ── Прокручиваемая зона со списком целей ── */
 .gl-list {
   flex: 1;                 /* ГЛАВНОЕ для «на всю рабочую область» */
@@ -164,6 +166,30 @@
   text-decoration: line-through;
 }
 
+/* Кнопка «выполнить с опозданием» у просроченных целей:
+   круглая зелёная галочка — та же форма, что и hb-mark в привычках,
+   но чуть меньше, чтобы влезла в карточку рядом с крестиком. */
+.gl-mark-late {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--green-deep);
+  background: var(--green-soft);
+  color: var(--green-deep);
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .12s, background .15s;
+}
+.gl-mark-late:hover { background: var(--green); color: #fff; }
+.gl-mark-late:active { transform: scale(.9); }
+
+/* Кнопка-крестик: удалить цель (можно только НЕ выполненную) */
+
 /* ── Состояние «просрочено» (не сделано вчера): оранжевая рамка ── */
 .gl-card.late {
   border-color: #E8833A;
@@ -260,7 +286,13 @@
   line-height: 1.5;
   color: var(--ink-soft);
 }
-
+/*  Выполненная цель — «закрыта»: галочку снять нельзя, поэтому
+   убираем интерактивность: курсор-стрелка вместо «руки» и без
+   подсветки при наведении. Игрок сразу видит: цель сделана навсегда. */
+.gl-card.locked {
+  cursor: default;
+}
+.gl-card.locked:hover { background: var(--green-soft); }
 /* Забота о тех, кого укачивает: отключаем анимацию по настройке системы */
 @media (prefers-reduced-motion: reduce) {
   .gl-perfect { animation: none; }
