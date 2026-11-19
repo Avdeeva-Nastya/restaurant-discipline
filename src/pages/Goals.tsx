@@ -21,6 +21,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import "./Goals.css";
+// «Умное хранилище» с привязкой к аккаунту Telegram (см. src/lib/storage.ts)
+import { loadJSON, saveJSON } from "../lib/storage";
 
 /* ---------- Правила игры (константы) ---------- */
 const MAX_PER_DAY = 3;    // максимум НОВЫХ целей за один день
@@ -54,20 +56,17 @@ function todayStr(): string {
 }
 
 /* Ключ хранилища. Версия v1 — если правила изменятся,
-   сможем поднять версию и аккуратно сбросить старые данные. */
+   сможем поднять версию и аккуратно сбросить старые данные.
+   ВАЖНО: теперь через lib/storage этот ключ автоматически привязывается
+   к аккаунту Telegram (реальное имя ключа = "mb-goals-v1:tg-<id>"). */
 const STORAGE_KEY = "mb-goals-v1";
 
-/* Читаем цели из localStorage. Если данных нет или они битые —
-   отдаём пустой список (игра не должна падать из-за хранилища). */
+/* Читаем цели из нашего «умного хранилища» (localStorage + облако TG).
+   Если данных нет или они битые — отдаём пустой список
+   (игра не должна падать из-за хранилища). */
 function loadGoals(): Goal[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Goal[]) : [];
-  } catch {
-    return [];
-  }
+  const parsed = loadJSON<Goal[]>(STORAGE_KEY);
+  return Array.isArray(parsed) ? parsed : [];
 }
 
 export default function Goals() {
@@ -78,10 +77,12 @@ export default function Goals() {
   const [draft, setDraft] = useState("");
 
   /* ---------- СОХРАНЕНИЕ ----------
-   Каждый раз, когда список целей меняется, пишем его в
-   localStorage. Так данные переживают перезагрузку страницы. */
+   Каждый раз, когда список целей меняется, пишем его в «умное хранилище»:
+   мгновенная копия в localStorage + облачная копия в Telegram Cloud Storage.
+   Так данные переживают перезагрузку, чистку кэша и смену устройства —
+   и принадлежат именно текущему аккаунту TG. */
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
+    saveJSON(STORAGE_KEY, goals);
   }, [goals]);
 
   /* ---------- СИНХРОНИЗАЦИЯ НАГРАДЫ С КОДОМ ----------

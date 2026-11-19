@@ -23,6 +23,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import "./Habits.css";
+// «Умное хранилище» с привязкой к аккаунту Telegram (см. src/lib/storage.ts)
+import { loadJSON, saveJSON } from "../lib/storage";
 
 /* ---------- Правила игры (константы) ---------- */
 const MAX_PER_DAY = 3;   // максимум НОВЫХ привычек за один день
@@ -82,20 +84,16 @@ function earnedGems(h: Habit): number {
 }
 
 /* Ключ хранилища. Версия v1 — если правила изменятся,
-   поднимем версию и аккуратно сбросим старые данные. */
+   поднимем версию и аккуратно сбросим старые данные.
+   ВАЖНО: через lib/storage ключ привязывается к аккаунту Telegram
+   (реальное имя = "mb-habits-v1:tg-<id>"). */
 const STORAGE_KEY = "mb-habits-v1";
 
-/* Читаем привычки из localStorage; битые данные → пустой список,
+/* Читаем привычки из «умного хранилища»; битые данные → пустой список,
    игра не должна падать из-за хранилища. */
 function loadHabits(): Habit[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Habit[]) : [];
-  } catch {
-    return [];
-  }
+  const parsed = loadJSON<Habit[]>(STORAGE_KEY);
+  return Array.isArray(parsed) ? parsed : [];
 }
 
 export default function Habits() {
@@ -106,10 +104,10 @@ export default function Habits() {
   const [target, setTarget] = useState(7);    // выбранный цикл 7/14/21
 
   /* ---------- СОХРАНЕНИЕ ----------
-   Любое изменение списка пишем в localStorage — данные
-   переживают перезагрузку страницы. */
+   Любое изменение списка пишем в «умное хранилище»: localStorage +
+   облако Telegram. Данные привязаны к аккаунту TG и не теряются. */
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
+    saveJSON(STORAGE_KEY, habits);
   }, [habits]);
 
   /* ---------- ВЫЧИСЛЯЕМЫЕ ВЕЛИЧИНЫ (useMemo) ---------- */
