@@ -56,11 +56,20 @@
   color: var(--ink-soft);
 }
 
-/* Просроченные цели из вчерашнего дня — мягкая оранжевая плашка */
+/* Просроченные цели из вчерашнего дня — мягкая оранжевая плашка.
+   align-self: stretch — растягиваем плашку на всю ширину колонки,
+   иначе в flex-контейнере блок сжимается до ширины текста («узкая полоска»),
+   и padding/margin почти не видны.
+   box-sizing: border-box — padding не «вылезает» за пределы ширины. */
 .gl-overdue {
   flex: none;
-  margin-top: 10px;
-  padding: 9px 12px;
+  align-self: stretch;      /* ширина = вся рабочая область */
+  box-sizing: border-box;
+  margin: 10px 0;           /* внешние отступы сверху/снизу; по бокам уже даёт .gl-wrap */
+  padding: 10px 16px;       /* внутренние отступы: текст не липнет к рамке */
+  display: flex;            /* флекс внутри — чтобы центрировать текст вертикально */
+  align-items: center;      /* текст по центру ВЫСОТЫ плашки */
+  justify-content: flex-start; /* текст прижат к ЛЕВОМУ краю */
   font-size: 12.5px;
   font-weight: 800;
   background: #FBE3D3;
