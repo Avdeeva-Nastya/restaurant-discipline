@@ -191,6 +191,28 @@
 .gl-card.late .gl-check { border-color: #E8833A; color: #A4501F; background: #fff; }
 .gl-card.late .gl-text  { color: #A4501F; }
 
+/* Кнопка «выполнить с опозданием» у просроченных целей:
+   круглая зелёная галочка — та же форма, что и hb-mark в привычках,
+   но чуть меньше, чтобы влезла в карточку рядом с крестиком. */
+.gl-mark-late {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--green-deep);
+  background: var(--green-soft);
+  color: var(--green-deep);
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .12s, background .15s;
+}
+.gl-mark-late:hover { background: var(--green); color: #fff; }
+.gl-mark-late:active { transform: scale(.9); }
+
 /* Кнопка-крестик: удалить цель (можно только НЕ выполненную) */
 .gl-del {
   flex: none;

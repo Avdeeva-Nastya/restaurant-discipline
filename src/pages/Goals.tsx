@@ -25,6 +25,7 @@ import "./Goals.css";
 /* ---------- Правила игры (константы) ---------- */
 const MAX_PER_DAY = 3;    // максимум НОВЫХ целей за один день
 const REWARD_GEMS = 2;    // дизайн: 2 💎 за каждую выполненную цель
+const LATE_REWARD_GEMS = 1; // просроченную цель можно закрыть с опозданием — но награда меньше: 1 💎
 const PERFECT_BONUS = 5;  // дизайн: +5 💎 за идеальный день
 const MAX_LEN = 80;       // защита: длина одной цели не больше 80 символов
 
@@ -120,6 +121,24 @@ export default function Goals() {
     setGoals(prev => prev.map(g => (g.id === id ? { ...g, done: !g.done } : g)));
   }
 
+  // Выполнение ПРОСРОЧЕННОЙ цели с опозданием:
+  // отмечаем done=true И понижаем награду до LATE_REWARD_GEMS (1 💎 вместо 2 💎).
+  // После этого цель уходит из списка overdue (фильтр "!g.done") и
+  // больше не светится оранжевым — игрок честно закрыл «хвост».
+  function completeLate(id: string) {
+    setGoals(prev => prev.map(g =>
+      g.id === id ? { ...g, done: true, reward: LATE_REWARD_GEMS } : g
+    ));
+  }
+
+  // Удаление ЦЕЛИ ИЗ СПИСКА (кнопка-корзина у просроченных):
+  // в отличие от deleteGoal здесь удаляем цель полностью, даже невыполненную —
+  // это осознанный выбор игрока («не хочу её», награды нет).
+  // ВАЖНО: слот сегодняшнего дня не тратится, т.к. цель создана вчера.
+  function removeGoal(id: string) {
+    setGoals(prev => prev.filter(g => g.id !== id));
+  }
+
   // Удаление цели. Выполненные не удаляем — иначе можно «переиграть» награду.
   // Слот дня при удалении НЕ возвращается: лимит «3 создания за день» честный.
   function deleteGoal(id: string) {
@@ -178,12 +197,29 @@ export default function Goals() {
           </div>
         ))}
 
-        {/* Вчерашние незакрытые цели — помечены состоянием «late» */}
+        {/* Вчерашние незакрытые цели — помечены состоянием «late».
+            Теперь они тоже интерактивные: можно выполнить с опозданием
+            (галочка, награда 1 💎) или удалить совсем (крестик). */}
         {overdue.map(g => (
           <div key={g.id} className="gl-card late" title="Цель из прошлого дня">
             <span className="gl-check">!</span>
             <span className="gl-text">{g.text}</span>
-            <span className="gl-reward">💎{g.reward}</span>
+            {/* Награда у просроченных сразу показываем уменьшенную: 1 💎 */}
+            <span className="gl-reward">💎{LATE_REWARD_GEMS}</span>
+            {/* Кнопка «выполнить с опозданием»: done=true + reward=1 💎 */}
+            <button
+              type="button"
+              className="gl-mark-late"
+              title={`Выполнить с опозданием (+${LATE_REWARD_GEMS} 💎)`}
+              onClick={() => completeLate(g.id)}
+            >✔</button>
+            {/* Кнопка «удалить навсегда»: цель просто исчезает из списка */}
+            <button
+              type="button"
+              className="gl-del"
+              title="Удалить просроченную цель"
+              onClick={() => removeGoal(g.id)}
+            >✕</button>
           </div>
         ))}
       </div>
