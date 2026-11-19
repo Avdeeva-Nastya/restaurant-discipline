@@ -19,29 +19,21 @@ import { loadJSON, saveJSON } from "./storage";
 
 const WALLET_KEY = "mb-wallet-v1"; // базовое имя ключа (к нему приклеивается id TG)
 
-/* Форма кошелька:
-   gems        — текущий баланс кристаллов,
-   paid        — СПИСОК id целей, за которые награда УЖЕ выплачена.
-                 Именно он защищает от повторов после «отменил -> выполнил».
-   perfectDays — список дат ('ГГГГ-ММ-ДД'), за которые бонус идеального дня
-                 уже выдан (чтобы +5 💎 не капало каждый рендер). */
 export type Wallet = {
   gems: number;
   paid: string[];
-  perfectDays: string[];
 };
 
 // Пустой кошелёк нового пользователя: 0 кристаллов
-const EMPTY: Wallet = { gems: 0, paid: [], perfectDays: [] };
+const EMPTY: Wallet = { gems: 0, paid: [] };
 
 // Читаем кошелёк из хранилища; если данных нет — новый пользователь, 0 💎
 export function loadWallet(): Wallet {
   const parsed = loadJSON<Wallet>(WALLET_KEY);
-  if (!parsed || typeof parsed.gems !== "number") return { ...EMPTY, paid: [], perfectDays: [] };
+  if (!parsed || typeof parsed.gems !== "number") return { ...EMPTY, paid: [] };
   return {
     gems: Math.max(0, parsed.gems),          // защита: баланс не может быть отрицательным
-    paid: Array.isArray(parsed.paid) ? parsed.paid : [],
-    perfectDays: Array.isArray(parsed.perfectDays) ? parsed.perfectDays : [],
+    paid: Array.isArray(parsed.paid) ? parsed.paid : []
   };
 }
 
@@ -88,18 +80,9 @@ export function addGems(amount: number, reason = ""): void {
   emit(w.gems);                           // шапка узнаёт о новом балансе
 }
 
-/* Бонус идеального дня (+5 💎) — ровно ОДИН раз за дату.
-   Если дата уже в perfectDays — возвращаем false и ничего не начисляем. */
-export function claimPerfectDay(dayKey: string, bonus: number): boolean {
-  const w = loadWallet();
-  if (w.perfectDays.includes(dayKey)) return false; // уже получали — отказ
-  w.perfectDays.push(dayKey);
-  w.gems += bonus;
-  saveWallet(w);
-  emit(w.gems);
-  console.log(`[wallet] идеальный день ${dayKey}: +${bonus} 💎 → баланс ${w.gems}`);
-  return true;
-}
+
+
+
 
 /* Отметить цель как «оплаченную». Вызывается в момент ПЕРВОГО выполнения.
    Если id уже в списке paid — возвращаем false: награду выдавать нельзя

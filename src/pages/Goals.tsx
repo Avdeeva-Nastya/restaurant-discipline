@@ -17,7 +17,7 @@ import "./Goals.css";
 // «Умное хранилище» с привязкой к аккаунту Telegram (см. src/lib/storage.ts)
 import { loadJSON, saveJSON } from "../lib/storage";
 // Кошелёк кристаллов 💎: начисление, защита от повторов (см. src/lib/wallet.ts)
-import { addGems, markGoalPaid, claimPerfectDay } from "../lib/wallet";
+import { addGems, markGoalPaid } from "../lib/wallet";
 
 /* ---------- Правила игры (константы) ---------- */
 const MAX_PER_DAY = 10;     // максимум НОВЫХ целей за один день
