@@ -158,16 +158,25 @@
 .hb-streak { color: #E8833A; }        /* 🔥 серия — оранжевый маячок дизайна */
 .hb-reward { color: var(--green-deep); } /* 💎 награда — матча */
 
-/* Кнопка «сегодня сделано»: большая, круглая, кликабельная */
+/* Правая колонка карточки: галочка сверху, крестик под ней (вертикально, компактно) */
+.hb-actions {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Кнопка «сегодня сделано»: круглая, небольшая, чтобы экономить место */
 .hb-mark {
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: 2px solid var(--green-line);
   background: var(--green-soft);
   color: var(--green-deep);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 900;
   cursor: pointer;
   display: flex;
@@ -192,16 +201,16 @@
   background: var(--amber-soft);
 }
 
-/* Крестик удаления (только для привычек, созданных сегодня) */
+/* Крестик удаления (только для привычек, созданных сегодня) — маленький, под галочкой */
 .hb-del {
   flex: none;
-  width: 25px;
-  height: 25px;
-  border-radius: 8px;
-  border: 2px solid var(--cream3);
+  width: 20px;
+  height: 20px;
+  border-radius: 7px;
+  border: 1.5px solid var(--cream3);
   background: var(--cream2);
   color: var(--ink-soft);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 900;
   cursor: pointer;
   transition: color .15s, border-color .15s;
