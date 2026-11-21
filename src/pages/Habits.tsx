@@ -15,6 +15,8 @@ import { useEffect, useMemo, useState } from "react";
 import "./Habits.css";
 // Общий кошелёк кристаллов: начисление + подписка шапки (см. src/lib/wallet.ts)
 import { addGems, markGoalPaid } from "../lib/wallet";
+// Достижения профиля: первая выполненная привычка -> +5 💎 (см. src/lib/achievements.ts)
+import { unlockAchievement } from "../lib/achievements";
 
 /* ---------- Правила игры (константы) ---------- */
 const MAX_ACTIVE = 3;      // максимум ОДНОВРЕМЕННЫХ активных привычек
@@ -139,6 +141,7 @@ export default function Habits() {
       const next = Math.min(base + 1, h.target);
       // Дневная награда: +2 💎 за каждый выполненный день
       addGems(DAILY_GEM, `день привычки «${h.name}»`);
+      unlockAchievement("first-habit"); // достижение «Первая привычка» (+5 💎, один раз)
       // Бонус за полностью закрытую серию: 7→+5, 14→+10, 21→+15 💎 (один раз)
       if (next >= h.target) {
         const bonus = STREAK_BONUS[h.target] ?? 0;

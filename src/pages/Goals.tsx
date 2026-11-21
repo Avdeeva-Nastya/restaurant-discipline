@@ -18,6 +18,8 @@ import "./Goals.css";
 import { loadJSON, saveJSON } from "../lib/storage";
 // Кошелёк кристаллов 💎: начисление, защита от повторов (см. src/lib/wallet.ts)
 import { addGems, markGoalPaid } from "../lib/wallet";
+// Достижения профиля: первая выполненная цель -> +5 💎 (см. src/lib/achievements.ts)
+import { unlockAchievement } from "../lib/achievements";
 
 /* ---------- Правила игры (константы) ---------- */
 const MAX_PER_DAY = 10;     // максимум НОВЫХ целей за один день
@@ -126,6 +128,7 @@ export default function Goals() {
         // ПЕРВОЕ выполнение призовой цели — платим её награду (3 💎)
         addGems(g.reward, `цель «${g.text}»`);
       }
+      unlockAchievement("first-goal"); // достижение «Первая цель» (+5 💎, один раз)
       return { ...g, done: true };          // отмечаем выполненной навсегда
     }));                                     // ← ВОТ ЭТОЙ СКОБКИ У ВАС НЕ ХВАТАЛО
   }                                           // ← и закрывающей скобки самой функции
@@ -142,6 +145,7 @@ export default function Goals() {
       if (lateReward > 0 && markGoalPaid(g.id)) {
         addGems(lateReward, `просроченная цель «${g.text}»`);  // +1 💎 один раз
       }
+      unlockAchievement("first-goal"); // просроченная тоже считается первой целью
       return { ...g, done: true, reward: lateReward };
     }));
     if (!completed) return;

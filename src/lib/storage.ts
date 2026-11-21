@@ -13,6 +13,7 @@ import {
   isCloudStorageSupported,
   setCloudStorageItem,
   getCloudStorageItem,
+  deleteCloudStorageItem,
 } from "@telegram-apps/sdk"; // облачное хранилище Telegram (CloudStorage)
 
 /** Имя текущего пользователя Telegram или null, если мы не внутри TG. */
@@ -174,7 +175,17 @@ export function migrateLegacyKeys(bases: string[]): void {
     if (legacy && !personal) {
       localStorage.setItem(makeKey(base), legacy); // переносим под аккаунт
       localStorage.removeItem(base);               // убираем общий ключ навсегда
+      // Удаляем и общую копию из облака TG: иначе на другом устройстве
+      // restoreFromCloud может стянуть чужие/устаревшие данные.
+      if (isCloudStorageSupported()) {
+        try { void importCloudDelete(base).catch(() => {}); } catch { /* не страшно */ }
+      }
       console.log("[storage] Старые данные перенесены под Telegram-аккаунт:", base);
     }
   }
+}
+
+/* Облачное удаление — импортируем лениво, чтобы не менять верхние импорты. */
+function importCloudDelete(key: string): Promise<void> {
+  return deleteCloudStorageItem(key);
 }

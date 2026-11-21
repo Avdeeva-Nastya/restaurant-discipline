@@ -7,7 +7,14 @@ import { initTelegramUser, migrateLegacyKeys, restoreFromCloud } from "./lib/sto
 
 // Список базовых имён ключей данных игры. Добавляй сюда новые ключи,
 // если придумаешь новую страницу с сохранением (например, копить монеты).
-const DATA_KEYS = ["mb-goals-v1", "mb-habits-v1", "mb-wallet-v1", "mb-rating-v1"];
+const DATA_KEYS = [
+  "mb-goals-v1",
+  "mb-habits-v1", // старый ключ привычек (v1) — нужен для разового переноса
+  "mb-habits-v2", // текущий ключ привычек
+  "mb-wallet-v1",
+  "mb-rating-v1",
+  "mb-achievements-v1", // достижения профиля
+];
 
 const root = createRoot(document.getElementById("root")!);
 
@@ -30,6 +37,17 @@ if (!userId && window.location.search.includes("tgWebAppData")) {
 } else {
   // 2) Если у игрока уже были данные без привязки — переносим их под его аккаунт.
   migrateLegacyKeys(DATA_KEYS);
+  // Разовый перенос: привычки хранились под ключом v1, а код уже пишет v2.
+  // Без этого шага старые списки «исчезали» после обновления приложения.
+  {
+    const from = "mb-habits-v1" + (userId ? `:tg-${userId}` : "");
+    const to = "mb-habits-v2" + (userId ? `:tg-${userId}` : "");
+    const legacyHabits = localStorage.getItem(from);
+    if (legacyHabits && !localStorage.getItem(to)) {
+      localStorage.setItem(to, legacyHabits);
+      console.log("[storage] Привычки перенесены из v1 в v2");
+    }
+  }
   // 3) Пробуем восстановить данные из облака Telegram (на случай чистки кэша).
   //    Делаем это ДО первого рендера, чтобы страницы сразу увидели цели/привычки.
   await restoreFromCloud(DATA_KEYS);
