@@ -44,20 +44,8 @@
   color: var(--ink-soft);
 }
 
-/* Плашка о просроченных днях привычек (красновато-оранжевая, мягкая) */
-.hb-overdue {
-  flex: none;
-  margin-top: 8px;
-  padding: 7px 10px;
-  font-size: 11px;
-  font-weight: 800;
-  background: #FBE3D3;
-  border: 2px solid #E8833A;
-  border-radius: 12px;
-  color: #A4501F;
-}
-
-/* ── Прокручиваемая зона со списком: тянется на всю доступную высоту ── */
+/* ── Прокручиваемая зона со списком: тянется на всю доступную высоту.
+   Список находится НИЖЕ панели создания (порядок задаётся в Habits.tsx) ── */
 .hb-list {
   flex: 1;                 /* ГЛАВНОЕ для «на всю рабочую область» */
   min-height: 0;
@@ -217,27 +205,7 @@
 }
 .hb-del:hover { color: #C0392B; border-color: #E8833A; }
 
-/* ── Баннер идеального дня: все сегодняшние отметки закрыты ── */
-.hb-perfect {
-  flex: none;
-  margin-top: 8px;
-  padding: 8px 10px;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 900;
-  color: var(--green-deep);
-  background: var(--green-soft);
-  border: 2px solid var(--green-line);
-  border-radius: 13px;
-  animation: hbPop .3s ease;
-}
-
-@keyframes hbPop {
-  0%   { transform: scale(.9); opacity: 0; }
-  100% { transform: scale(1);  opacity: 1; }
-}
-
-/* ── ПАНЕЛЬ СОЗДАНИЯ ПРИВЫЧКИ (низ рабочей области) ──
+/* ── ПАНЕЛЬ СОЗДАНИЯ ПРИВЫЧКИ — СВЕРХУ (перед списком) ──
    Именно здесь живёт «плюсик»: большая зелёная кнопка "+". */
 .hb-form {
   flex: none;
@@ -245,6 +213,30 @@
   gap: 6px;
   margin-top: 9px;
 }
+
+/* Ряд выбора цикла серии 7/14/21 */
+.hb-cycles { gap: 8px; }
+
+/* Кнопка выбора цикла: таблетка, активная — зелёная */
+.hb-cycle {
+  flex: none;
+  padding: 5px 14px;
+  border-radius: 11px;
+  border: 2px solid var(--cream3);
+  background: #FFFBEE;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: transform .12s, background .15s, border-color .15s;
+}
+.hb-cycle.on {
+  border-color: var(--green);
+  background: var(--green-soft);
+  color: var(--green-deep);
+}
+.hb-cycle:active { transform: scale(.94); }
 
 /* Выбор эмодзи — квадратная кнопка-иконка перед полем ввода */
 .hb-pick {
@@ -305,7 +297,3 @@
   color: var(--ink-soft);
 }
 
-/* Забота о тех, кого укачивает: отключаем анимацию по настройке системы */
-@media (prefers-reduced-motion: reduce) {
-  .hb-perfect { animation: none; }
-}
