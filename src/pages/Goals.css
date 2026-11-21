@@ -24,20 +24,20 @@
 
 /* Заголовок — крупный, как в дизайне приложения */
 .gl-title {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 900;
   color: var(--ink);
 }
 
 /* Счётчик-«таблетка»: сколько целей ещё можно создать */
 .gl-counter {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 800;
-  height: 25px;
-  width: 90px;
+  height: 22px;
+  width: 84px;
   background: var(--cream2);
   border: 2px solid var(--amber-line);
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--ink-soft);
   display: inline-flex;      /* флекс нужен, чтобы text-align/align-свойства работали */
   align-items: center;       /* центрирование текста по вертикали */
@@ -50,11 +50,11 @@
 .gl-overdue {
   display: flex;               
   align-items: center;
-  height: 28px;
-  align-self: stretch;         /* ширина = вся рабочая область */
-  margin: 5px 0;        
-  padding:  0px 10px;      
-  font-size: 12.5px;
+  height: 24px;
+  align-self: stretch;
+  margin: 4px 0;
+  padding: 0px 9px;
+  font-size: 11px;
   font-weight: 800;
   background: #FBE3D3;
   border: 2px solid #E8833A;
@@ -69,8 +69,8 @@
   overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 2px 4px;
+  gap: 8px;
+  padding: 9px 2px 4px;
   scrollbar-width: thin;
   scrollbar-color: #D9C48F transparent;
 }
@@ -87,22 +87,22 @@
   gap: 8px;
   text-align: center;
   color: var(--ink-soft);
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
   line-height: 1.6;
 }
-.gl-empty .big { font-size: 42px; }
+.gl-empty .big { font-size: 34px; }
 
 /* ══ Одна карточка-цель ══ */
 .gl-card {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 13px 15px;
+  gap: 9px;
+  padding: 9px 11px;
   background: #FFFBEE;
   border: 2px solid var(--cream3);
-  border-radius: 16px;
+  border-radius: 13px;
   box-shadow: 0 4px 10px -6px rgba(74, 55, 40, .35);
   cursor: pointer;               /* вся карточка кликабельна = галочка */
   user-select: none;
@@ -113,13 +113,13 @@
 /* Чекбокс — круглая кнопка слева */
 .gl-check {
   flex: none;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: 2px solid var(--green-line);
   background: var(--green-soft);
   color: var(--green-deep);
-  font-size: 16px;
+  font-size: 13.5px;
   font-weight: 900;
   display: flex;
   align-items: center;
@@ -131,7 +131,7 @@
 .gl-text {
   flex: 1;
   min-width: 0;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1.4;
   word-break: break-word;
@@ -140,13 +140,13 @@
 /* Награда — золотой бейдж справа */
 .gl-reward {
   flex: none;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 900;
   color: var(--green-deep);
   background: var(--amber-soft);
   border: 2px solid var(--amber-line);
-  border-radius: 11px;
-  padding: 5px 9px;
+  border-radius: 9px;
+  padding: 3px 7px;
   white-space: nowrap;
 }
 
@@ -171,13 +171,13 @@
    но чуть меньше, чтобы влезла в карточку рядом с крестиком. */
 .gl-mark-late {
   flex: none;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: 2px solid var(--green-deep);
   background: var(--green-soft);
   color: var(--green-deep);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 900;
   cursor: pointer;
   display: flex;
@@ -201,13 +201,13 @@
 /* Кнопка-крестик: удалить цель (можно только НЕ выполненную) */
 .gl-del {
   flex: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
+  width: 25px;
+  height: 25px;
+  border-radius: 8px;
   border: 2px solid var(--cream3);
   background: var(--cream2);
   color: var(--ink-soft);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 900;
   cursor: pointer;
   transition: color .15s, border-color .15s;
@@ -238,21 +238,21 @@
 .gl-form {
   flex: none;
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 6px;
+  margin-top: 9px;
 }
 
 .gl-input {
   flex: 1;
   min-width: 0;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--ink);
   background: #FFFBEE;
   border: 2px solid var(--cream3);
-  border-radius: 13px;
-  padding: 10px 13px;
+  border-radius: 11px;
+  padding: 7px 10px;
 }
 .gl-input:focus { outline: none; border-color: var(--green-line); }
 .gl-input::placeholder { color: var(--ink-soft); }
@@ -261,13 +261,13 @@
 /* ГЛАВНАЯ КНОПКА «ПЛЮСИК»: крупная матчевая «+», как в дизайне */
 .gl-add {
   flex: none;
-  width: 46px;
-  height: 46px;
-  border-radius: 13px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
   border: none;
   background: var(--green);
   color: #fff;
-  font-size: 26px;
+  font-size: 21px;
   font-weight: 900;
   line-height: 1;
   cursor: pointer;
@@ -280,8 +280,8 @@
 /* Подсказка-предупреждение под формой (например «лимит 3 исчерпан») */
 .gl-hint {
   flex: none;
-  margin-top: 8px;
-  font-size: 11.5px;
+  margin-top: 6px;
+  font-size: 10.5px;
   font-weight: 700;
   line-height: 1.5;
   color: var(--ink-soft);
