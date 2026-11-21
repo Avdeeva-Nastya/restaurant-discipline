@@ -225,7 +225,10 @@ export function saveJSON(base: string, value: unknown): void {
   }
 }
 
-/** Достаём данные из облака Telegram, если локально пусто (после чистки кэша). */
+/** Достаём данные из облака Telegram, если локально пусто (после чистки кэша).
+ *  ⚠️ Устарело: основная логика теперь в syncWithCloud() — она сравнивает
+ *  локальную и облачную копии и выбирает «богатейшую». Оставлено для
+ *  совместимости со старыми вызовами. */
 export async function restoreFromCloud(bases: string[]): Promise<void> {
   if (!tgUserId || !isCloudStorageSupported()) return;
   for (const base of bases) {
