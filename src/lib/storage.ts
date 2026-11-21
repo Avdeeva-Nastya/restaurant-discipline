@@ -44,15 +44,41 @@ export function onStorageSave(fn: SaveListener): () => void {
  *  следующем запуске. */
 export async function pushAllToCloud(bases: string[]): Promise<void> {
   if (!tgUserId || !isCloudStorageSupported()) return;
+  let pushed = 0;
   for (const base of bases) {
     const key = makeKey(base);
     const raw = localStorage.getItem(key);
     if (!raw) continue;
+    /* Не отправляем «пустые» данные ( [], {}, {unlocked: []} и т.п.).
+       Иначе свежее устройство при первом запуске затирало бы реальный
+       прогресс друга-аккаунта в облаке пустотой — из-за этого на ПК
+       всё и обнулялось, несмотря на синхронизацию. */
+    if (isEmptyPayload(raw)) continue;
     try {
       await setCloudStorageItem(key, raw);
+      pushed++;
     } catch { /* облако недоступно — не критично */ }
   }
-  console.log("[storage] Локальные данные отправлены в облако Telegram");
+  console.log(`[storage] Локальные данные отправлены в облако Telegram (${pushed}/${bases.length})`);
+}
+
+/** Считает ли строку JSON «пустой» (нет ни одного непустого массива/объекта/числа). */
+function isEmptyPayload(raw: string): boolean {
+  try {
+    const v = JSON.parse(raw);
+    return !hasContent(v);
+  } catch {
+    return false; // непарсимое — считаем содержательным, пусть решает syncWithCloud
+  }
+}
+
+function hasContent(v: unknown): boolean {
+  if (v == null) return false;
+  if (typeof v === "number") return v !== 0;
+  if (typeof v === "string" || typeof v === "boolean") return true;
+  if (Array.isArray(v)) return v.some(hasContent);
+  if (typeof v === "object") return Object.values(v as Record<string, unknown>).some(hasContent);
+  return false;
 }
 
 /**
@@ -218,12 +244,20 @@ export function saveJSON(base: string, value: unknown): void {
   } catch (e) {
     console.warn("[storage] Не удалось записать в localStorage:", e);
   }
+  /* Оповещаем подписчиков шины (AchievementToast и др.), что под этим
+     ключом появились новые данные. БЕЗ этой строки плашка о достижении
+     никогда не показывалась: слушатели регистрировались, но событие
+     никто не рассылал. */
+  saveListeners.forEach(fn => {
+    try { fn(base, value); } catch { /* сломанный слушатель не ломает запись */ }
+  });
   if (isCloudStorageSupported()) {
     try {
       void setCloudStorageItem(key, JSON.stringify(value)).catch(() => {});
     } catch { /* метод недоступен в этом клиенте — не страшно */ }
   }
 }
+
 
 /** Достаём данные из облака Telegram, если локально пусто (после чистки кэша).
  *  ⚠️ Устарело: основная логика теперь в syncWithCloud() — она сравнивает
