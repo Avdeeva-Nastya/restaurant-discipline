@@ -219,18 +219,17 @@ export default function Goals() {
           </div>
         ))}
 
-        {/* Вчерашние незакрытые цели: выполнить с опозданием (1 💎) или удалить */}
+        {/* Вчерашние незакрытые цели: выполняем кликом по чекбоксу (1 💎) или удаляем крестиком */}
         {overdue.map(g => (
-          <div key={g.id} className={"gl-card late" + (g.reward === 0 ? " nofee" : "")} title="Цель из прошлого дня">
-            <span className="gl-check">!</span>
+          <div
+            key={g.id}
+            className={"gl-card late" + (g.reward === 0 ? " nofee" : "")}
+            title="Цель из прошлого дня"
+            onClick={() => completeLate(g.id)}   // клик по карточке = выполнить с опозданием
+          >
+            {/* обычный чекбокс-кружок слева: пустой → при клике станет ✔ */}
+            <span className="gl-check">{g.done ? "✔" : ""}</span>
             <span className="gl-text">{g.text}</span>
-            {g.reward > 0 && <span className="gl-reward">💎{LATE_REWARD_GEMS}</span>}
-            <button
-              type="button"
-              className="gl-mark-late"
-              title={`Выполнить с опозданием (+${LATE_REWARD_GEMS} 💎)`}
-              onClick={() => completeLate(g.id)}
-            >✔</button>
             <button
               type="button"
               className="gl-del"
