@@ -58,12 +58,12 @@ function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
 
 /* ---------- Оглавление вкладок ----------*/
 
-const TABS = [
-  { id: "restaurant", label: "Ресторан" },
-  { id: "goals", label: "Цели" },
-  { id: "habits", label: "Привычки" },
-  { id: "shop", label: "Магазин" },
-  { id: "profile", label: "Профиль" }
+const TABS: { id: string; label: string; icon: IconName }[] = [
+  { id: "restaurant", label: "Ресторан", icon: "cloche" },
+  { id: "goals", label: "Цели", icon: "book" },
+  { id: "habits", label: "Привычки", icon: "hat" },
+  { id: "shop", label: "Магазин", icon: "store" },
+  { id: "profile", label: "Профиль", icon: "chart" }
 ];
 
 /* ---------- Сам экран ---------- */
@@ -132,7 +132,8 @@ export default function App() {
             // КНОПКА ЗВОНКА: при клике переписываем стикер на id этой кнопки
             onClick={() => setActiveTab(tab.id)}
           >
-            {tab.label}
+            <span className="ico"><Icon name={tab.icon} size={20} /></span>
+            <span className="lbl">{tab.label}</span>
           </button>
         ))}
       </nav>
