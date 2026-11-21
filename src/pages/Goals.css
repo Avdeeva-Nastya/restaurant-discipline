@@ -176,6 +176,41 @@
 .gl-card.late .gl-check { border-color: #E8833A; color: #A4501F; background: #fff; }
 .gl-card.late .gl-text  { color: #A4501F; }
 
+/* ── Анимация «выполнено с опозданием»: карточка на мгновение становится
+   зелёной с галочкой (glPopLate), затем плавно схлопывается и исчезает
+   (переход к классу .gone) — после чего цель убирается из списка. ── */
+.gl-card.justdone {
+  border-color: var(--green-line);
+  background: var(--green-soft);
+  animation: glPopLate .25s ease;
+  max-height: 120px;           /* базовое значение для плавного схлопывания */
+  transition: opacity .3s ease, transform .3s ease,
+              max-height .3s ease, padding .3s ease, border-width .3s ease;
+}
+.gl-card.justdone .gl-check {
+  background: var(--green);
+  border-color: var(--green-deep);
+  color: #fff;
+}
+.gl-card.justdone .gl-del { visibility: hidden; }   /* крестик прячем во время анимации */
+
+@keyframes glPopLate {
+  0%   { transform: scale(.97); }
+  55%  { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+/* Финальный кадр: карточка схлопывается и уезжает вправо */
+.gl-card.justdone.gone {
+  opacity: 0;
+  transform: translateX(24px) scale(.96);
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: -8px;          /* компенсируем gap списка, чтобы карточки «съезжались» */
+  border-width: 0;
+  overflow: hidden;
+}
+
 /* Кнопка-крестик: удалить цель (можно только НЕ выполненную) */
 .gl-del {
   flex: none;
@@ -274,4 +309,5 @@
 /* Забота о тех, кого укачивает: отключаем анимацию по настройке системы */
 @media (prefers-reduced-motion: reduce) {
   .gl-perfect { animation: none; }
+  .gl-card.justdone { animation: none; transition: none; }
   }
