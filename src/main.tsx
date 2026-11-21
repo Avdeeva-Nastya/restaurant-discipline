@@ -7,7 +7,6 @@ import { initTelegramUser, migrateLegacyKeys, restoreFromCloud } from "./lib/sto
 
 // Список базовых имён ключей данных игры. Добавляй сюда новые ключи,
 // если придумаешь новую страницу с сохранением (например, копить монеты).
-<<<<<<< HEAD
 const DATA_KEYS = [
   "mb-goals-v1",
   "mb-habits-v1", // старый ключ привычек (v1) — нужен для разового переноса
@@ -16,9 +15,6 @@ const DATA_KEYS = [
   "mb-rating-v1",
   "mb-achievements-v1", // достижения профиля
 ];
-=======
-const DATA_KEYS = ["mb-goals-v1", "mb-habits-v1", "mb-wallet-v1", "mb-rating-v1"];
->>>>>>> f1af2975fa9b7f40336c8c264e5472925536b812
 
 const root = createRoot(document.getElementById("root")!);
 

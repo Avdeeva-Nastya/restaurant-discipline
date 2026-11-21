@@ -4,8 +4,12 @@
 // ПРАВИЛА:
 //   • Достижение выдаётся ОДИН РАЗ, автоматически, когда событие произошло.
 //   • За каждое закрытое достижение игрок получает ACH_GEMS кристаллов.
-//   • Факт хранения идёт в персональный ключ "mb-achievements-v1:tg-<id>"
-//     (localStorage + облако Telegram через lib/storage).
+//   • Факт выдачи хранится в персональном ключе "mb-achievements-v1:tg-<id>"
+//     (localStorage + облако Telegram через lib/storage), поэтому призовое
+//     «5 💎» нельзя получить повторно даже после чистки целей/привычек.
+//
+// Начисление идёт напрямую в кошелёк (loadWallet/saveWallet), а не через
+// addGems, чтобы награда достижения не путалась с наградами целей и привычек.
 // ============================================================================
 
 import { loadJSON, saveJSON } from "./storage";
@@ -24,18 +28,20 @@ export type AchievementDef = {
 
 /* Пока два достижения: первая выполненная цель и первая выполненная привычка */
 export const ACHIEVEMENTS: AchievementDef[] = [
-  { id: "first-goal",    title: "Первая цель",      desc: "Выполни первую задачу дня",  emoji: "🎯" },
-  { id: "first-habit",   title: "Первая привычка",  desc: "Отметь первый день привычки", emoji: "🌱" },
+  { id: "first-goal",    title: "Первая цель",      desc: "Выполни первую задачу дня",       emoji: "🎯" },
+  { id: "first-habit",   title: "Первая привычка",  desc: "Отметь первый день привычки",      emoji: "🌱" },
 ];
 
 type AchStore = { unlocked: string[] };
 
+// Читаем список уже выданных достижений (пустой у нового игрока)
 export function loadAchievements(): string[] {
   const parsed = loadJSON<AchStore>(ACH_KEY);
   return Array.isArray(parsed?.unlocked) ? parsed!.unlocked : [];
 }
 
-/* СОБЫТИЙНАЯ ШИНА — профиль мгновенно узнаёт о новом достижении. */
+/* СОБЫТИЙНАЯ ШИНА — профиль и другие компоненты мгновенно узнают
+   о новом достижении (та же схема, что у wallet и rating). */
 type Listener = (unlocked: string[]) => void;
 const listeners = new Set<Listener>();
 
@@ -48,7 +54,8 @@ function emit(unlocked: string[]): void {
   listeners.forEach(fn => fn(unlocked));
 }
 
-/* ГЛАВНАЯ ФУНКЦИЯ: засчитать достижение. Возвращает true, если открыто впервые. */
+/* ГЛАВНАЯ ФУНКЦИЯ: засчитать достижение.
+   Возвращает true, если оно было открыто ТОЛЬКО ЧТО (первый раз). */
 export function unlockAchievement(id: string): boolean {
   const unlocked = loadAchievements();
   if (unlocked.includes(id)) return false; // уже получен — награду не дублируем
