@@ -3,7 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 // Наше «умное хранилище» с привязкой к аккаунту Telegram (см. lib/storage.ts)
-import { initTelegramUser, migrateLegacyKeys, restoreFromCloud } from "./lib/storage";
+import { initTelegramUser, migrateLegacyKeys, syncWithCloud, pushAllToCloud } from "./lib/storage";
 
 // Список базовых имён ключей данных игры. Добавляй сюда новые ключи,
 // если придумаешь новую страницу с сохранением (например, копить монеты).
@@ -48,13 +48,19 @@ if (!userId && window.location.search.includes("tgWebAppData")) {
       console.log("[storage] Привычки перенесены из v1 в v2");
     }
   }
-  // 3) Пробуем восстановить данные из облака Telegram (на случай чистки кэша).
-  //    Делаем это ДО первого рендера, чтобы страницы сразу увидели цели/привычки.
-  await restoreFromCloud(DATA_KEYS);
+  // 3) Полная синхронизация с облаком Telegram (два устройства одного
+  //    аккаунта должны видеть один прогресс). Делаем это ДО первого
+  //    рендера, чтобы страницы сразу увидели цели/привычки/баланс.
+  await syncWithCloud(DATA_KEYS);
 
   root.render(
     <StrictMode>
       <App />
     </StrictMode>,
   );
+
+  // 4) После рендера отправляем локальные данные в облако в фоне: так
+  //    прогресс этого устройства становится виден другим устройствам
+  //    того же аккаунта при их следующем запуске.
+  void pushAllToCloud(DATA_KEYS);
 }

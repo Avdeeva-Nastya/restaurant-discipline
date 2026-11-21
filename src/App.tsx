@@ -15,6 +15,8 @@ import Goals from "./pages/Goals";
 import Shop from "./pages/Shop";
 import Profile from "./pages/Profile";
 import Restaurant from "./pages/Restaurant";
+// Плашка-уведомление о новом достижении 🏆 (см. components/AchievementToast.tsx)
+import AchievementToast from "./components/AchievementToast";
 import "./App.css";
 
 
@@ -87,6 +89,8 @@ export default function App() {
   return (
     
     <div className="mb-root">
+      {/* Плашка о выполненном достижении: видна поверх любой вкладки */}
+      <AchievementToast />
       <div className="mb-caption">Мур-мур бистро · Ресторан</div>
 
       <div className="mb-frame">

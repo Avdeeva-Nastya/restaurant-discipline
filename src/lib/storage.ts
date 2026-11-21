@@ -37,8 +37,12 @@ export function onStorageSave(fn: SaveListener): () => void {
    в облако молча не происходили — поэтому на ПК данные не подтягивались
    к тому же аккаунту, что играл на телефоне. */
 
-/** Отправить свежие локальные данные всех ключей в облако Telegram. */
-async function pushAllToCloud(bases: string[]): Promise<void> {
+/** Отправить свежие локальные данные всех ключей в облако Telegram.
+ *  Вызывается из main.tsx после первого рендера — благодаря этому
+ *  прогресс, накопленный на этом устройстве (например, на телефоне),
+ *  оказывается в облаке и другие устройства (ПК) подтянут его при
+ *  следующем запуске. */
+export async function pushAllToCloud(bases: string[]): Promise<void> {
   if (!tgUserId || !isCloudStorageSupported()) return;
   for (const base of bases) {
     const key = makeKey(base);
@@ -61,7 +65,7 @@ async function pushAllToCloud(bases: string[]): Promise<void> {
  *     устройства сошлись на общем прогрессе.
  * Возвращает true, если из облака удалось что-то заполучить.
  */
-async function syncWithCloud(bases: string[]): Promise<boolean> {
+export async function syncWithCloud(bases: string[]): Promise<boolean> {
   if (!tgUserId || !isCloudStorageSupported()) return false;
   let restored = false;
   for (const base of bases) {
