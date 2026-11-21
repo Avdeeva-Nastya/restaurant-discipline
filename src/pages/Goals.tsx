@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./Goals.css";
 // «Умное хранилище» с привязкой к аккаунту Telegram (см. src/lib/storage.ts)
-import { loadJSON, saveJSON } from "../lib/storage";
+import { loadJSON, saveJSON, onCloudUpdate } from "../lib/storage";
 // Кошелёк кристаллов 💎: начисление, защита от повторов (см. src/lib/wallet.ts)
 import { addGems, markGoalPaid } from "../lib/wallet";
 // Достижения профиля: первая выполненная цель -> +5 💎 (см. src/lib/achievements.ts)
@@ -63,6 +63,13 @@ export default function Goals() {
   useEffect(() => {
     saveJSON(STORAGE_KEY, goals);
   }, [goals]);
+
+  /* ---------- ФОНОВАЯ СИНХРОНИЗАЦИЯ ----------
+     Если другое устройство (ПК/телефон того же аккаунта) изменило цели
+     в облаке Telegram — подтягиваем свежие данные без перезагрузки. */
+  useEffect(() => onCloudUpdate(bases => {
+    if (bases.includes(STORAGE_KEY)) setGoals(loadGoals());
+  }), []);
 
   /* Синхронизация наград при загрузке: у невыполненных сегодняшних целей
      первые 3 слота = REWARD_GEMS, остальные = 0. Выполненные не трогаем. */

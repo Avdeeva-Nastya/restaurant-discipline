@@ -3,7 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 // Наше «умное хранилище» с привязкой к аккаунту Telegram (см. lib/storage.ts)
-import { initTelegramUser, migrateLegacyKeys, syncWithCloud, pushAllToCloud } from "./lib/storage";
+import { initTelegramUser, migrateLegacyKeys, syncWithCloud, pushAllToCloud, startBackgroundSync } from "./lib/storage";
 
 // Список базовых имён ключей данных игры. Добавляй сюда новые ключи,
 // если придумаешь новую страницу с сохранением (например, копить монеты).
@@ -63,4 +63,9 @@ if (!userId && window.location.search.includes("tgWebAppData")) {
   //    прогресс этого устройства становится виден другим устройствам
   //    того же аккаунта при их следующем запуске.
   void pushAllToCloud(DATA_KEYS);
+
+  // 5) Фоновая синхронизация «на лету»: каждые ~20 секунд приложение
+  //    сверяется с облаком Telegram и подтягивает более свежие данные
+  //    другого устройства без перезагрузки мини-приложения.
+  startBackgroundSync(DATA_KEYS);
 }

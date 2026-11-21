@@ -62,6 +62,48 @@ export async function pushAllToCloud(bases: string[]): Promise<void> {
   console.log(`[storage] Локальные данные отправлены в облако Telegram (${pushed}/${bases.length})`);
 }
 
+/* ---------- ВЕРСИИ ДАННЫХ (timestamp'ы) ----------
+   Раньше при конфликте копий выбиралась «длиннейшая» JSON-строка.
+   Это не работало: на телефоне 2 цели с длинными названиями могли
+   «победить» 10 свежих целей на ПК и наоборот — данные расходились.
+   Теперь у каждой записи есть отметка времени: побеждает КОПИЯ,
+   сохранённая ПОЗЖЕ, независимо от длины и количества элементов. */
+
+const VER_SUFFIX = ":ver"; // localStorage-ключ с последней локальной версией
+const CLOUD_VER_KEY = "mb-meta-ver-v1"; // общий облачный ключ {base: timestamp}
+
+/** Запомнить время локального изменения + отправить его в облачное «метаданные». */
+export function markVersion(base: string): void {
+  if (!tgUserId) return;
+  const t = Date.now();
+  try { localStorage.setItem(base + VER_SUFFIX, String(t)); } catch { /* ок */ }
+  if (isCloudStorageSupported()) {
+    void readCloudVersions()
+      .then(map => {
+        map[base] = t;
+        return setCloudStorageItem(CLOUD_VER_KEY, JSON.stringify(map)).catch(() => {});
+      })
+      .catch(() => {});
+  }
+}
+
+/** Прочитать облачную карту версий {имяКлюча: timestamp}. */
+async function readCloudVersions(): Promise<Record<string, number>> {
+  try {
+    const raw = await getCloudStorageItem(CLOUD_VER_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return typeof parsed === "object" && parsed ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Локальная версия записи (0, если неизвестна). */
+function localVersion(base: string): number {
+  const n = Number(localStorage.getItem(base + VER_SUFFIX));
+  return Number.isFinite(n) ? n : 0;
+}
+
 /** Считает ли строку JSON «пустой» (нет ни одного непустого массива/объекта/числа). */
 function isEmptyPayload(raw: string): boolean {
   try {
@@ -94,6 +136,7 @@ function hasContent(v: unknown): boolean {
 export async function syncWithCloud(bases: string[]): Promise<boolean> {
   if (!tgUserId || !isCloudStorageSupported()) return false;
   let restored = false;
+  const versions = await readCloudVersions(); // общие отметки времени устройств
   for (const base of bases) {
     const key = makeKey(base);
     const local = localStorage.getItem(key);
@@ -103,20 +146,92 @@ export async function syncWithCloud(bases: string[]): Promise<boolean> {
     } catch { continue; } // ключа нет или облако недоступно
     if (!local && cloud) {
       localStorage.setItem(key, cloud);
+      markVersion(base);
       restored = true;
       console.log("[storage] Данные восстановлены из облака Telegram:", base);
     } else if (local && cloud && local !== cloud) {
-      // Разные копии на разных устройствах — побеждает «богатейшая»
-      if (cloud.length > local.length) {
+      /* Конфликт копий. Побеждает та, что СОХРАНЕНА ПОЗЖЕ (сравниваем
+         timestamp'ы, а не длину!). Если время неизвестно — откатываемся
+         к старому правилу «богатейшей» строки. */
+      const cloudTime = versions[base] ?? 0;
+      const myTime = localVersion(base);
+      const cloudWins = cloudTime > myTime
+        || (cloudTime === myTime && isEmptyPayload(local) && !isEmptyPayload(cloud));
+      if (cloudWins) {
         localStorage.setItem(key, cloud);
+        markVersion(base);
         restored = true;
         console.log("[storage] Облачная копия новее локальной:", base);
-      } else {
-        try { await setCloudStorageItem(key, local); } catch { /* ок */ }
+      } else if (!isEmptyPayload(local)) {
+        // Локальная свежее (или равно) — отправляем её в облако
+        try { await setCloudStorageItem(key, local); markVersion(base); } catch { /* ок */ }
       }
     }
   }
   return restored;
+}
+
+/* ---------- ФОНОВАЯ СИНХРОНИЗАЦИЯ «НА ЛЕТУ» ----------
+   Старая версия подтягивала данные с другого устройства только после
+   ПЕРЕЗАПУСКА мини-приложения. Поэтому если телефон был открыт параллельно
+   с ПК, цели «разъезжались»: каждое устройство жило своими данными.
+   Теперь каждые SYNC_INTERVAL_MS приложение тихо сверяется с облаком и,
+   если там есть более свежие данные, применяет их и оповещает страницы
+   событием onCloudUpdate (см. ниже). */
+
+const SYNC_INTERVAL_MS = 20_000;
+type CloudListener = (changedBases: string[]) => void;
+const cloudListeners = new Set<CloudListener>();
+
+/** Подписаться на обновление данных из облака другим устройством. */
+export function onCloudUpdate(fn: CloudListener): () => void {
+  cloudListeners.add(fn);
+  return () => cloudListeners.delete(fn);
+}
+
+let syncTimer: number | undefined;
+
+/** Запустить фоновую синхронизацию (вызывается один раз из main.tsx). */
+export function startBackgroundSync(bases: string[]): void {
+  if (syncTimer != null) return;
+  syncTimer = window.setInterval(async () => {
+    // Страница не видна — не тратим запросы (сверим при возврате)
+    if (document.hidden) return;
+    const changed = await pullNewerFromCloud(bases);
+    if (changed.length) {
+      console.log("[storage] Из облака подтянуты свежие данные:", changed.join(", "));
+      cloudListeners.forEach(fn => { try { fn(changed); } catch { /* ок */ } });
+    }
+  }, SYNC_INTERVAL_MS);
+  // И сразу при возврате в окно приложения (после сворачивания TG)
+  document.addEventListener("visibilitychange", async () => {
+    if (!document.hidden) {
+      const changed = await pullNewerFromCloud(bases);
+      if (changed.length) cloudListeners.forEach(fn => { try { fn(changed); } catch { /* ок */ } });
+    }
+  });
+}
+
+/** Одна быстрая сверка с облаком: берём только явно БОЛЕЕ СВЕЖИЕ копии. */
+async function pullNewerFromCloud(bases: string[]): Promise<string[]> {
+  if (!tgUserId || !isCloudStorageSupported()) return [];
+  const changed: string[] = [];
+  const versions = await readCloudVersions();
+  for (const base of bases) {
+    const key = makeKey(base);
+    const cloudTime = versions[base] ?? 0;
+    const myTime = localVersion(base);
+    if (cloudTime <= myTime) continue; // локально не старше — ничего не делаем
+    let cloud: string | null = null;
+    try { cloud = (await getCloudStorageItem(key)) || null; } catch { continue; }
+    if (!cloud || isEmptyPayload(cloud)) continue; // пустое облако игнорируем
+    const local = localStorage.getItem(key);
+    if (local === cloud) { markVersion(base); continue; } // уже наше — просто отмечаем
+    localStorage.setItem(key, cloud);
+    markVersion(base);
+    changed.push(base);
+  }
+  return changed;
 }
 
 /* ---------- СПОСОБ 1: читаем id прямо из URL запуска ----------
@@ -251,6 +366,9 @@ export function saveJSON(base: string, value: unknown): void {
   saveListeners.forEach(fn => {
     try { fn(base, value); } catch { /* сломанный слушатель не ломает запись */ }
   });
+  /* Запоминаем время изменения — по нему syncWithCloud решает, какая
+     из копий (локальная или облачная) свежее на другом устройстве. */
+  markVersion(base);
   if (isCloudStorageSupported()) {
     try {
       void setCloudStorageItem(key, JSON.stringify(value)).catch(() => {});

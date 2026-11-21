@@ -17,6 +17,7 @@ import "./Habits.css";
 import { addGems, markGoalPaid } from "../lib/wallet";
 // Достижения профиля: первая выполненная привычка -> +5 💎 (см. src/lib/achievements.ts)
 import { unlockAchievement } from "../lib/achievements";
+import { loadJSON, saveJSON, onCloudUpdate } from "../lib/storage";
 
 /* ---------- Правила игры (константы) ---------- */
 const MAX_ACTIVE = 3;      // максимум ОДНОВРЕМЕННЫХ активных привычек
@@ -69,16 +70,13 @@ function earnedFor(h: Habit): number {
 /* Ключ хранилища. Версия v2 — новые правила наград/лимита. */
 const STORAGE_KEY = "mb-habits-v2";
 
-/* Читаем привычки из localStorage; битые данные → пустой список. */
+/* Читаем привычки из «умного хранилища» (персональный ключ TG-аккаунта);
+   битые данные → пустой список. ВАЖНО: раньше здесь читался ОБЩИЙ ключ
+   localStorage напрямую — поэтому прогресс не синхронизировался между
+   телефоном и ПК и привязки к аккаунту не было. */
 function loadHabits(): Habit[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Habit[]) : [];
-  } catch {
-    return [];
-  }
+  const parsed = loadJSON<Habit[]>(STORAGE_KEY);
+  return Array.isArray(parsed) ? parsed : [];
 }
 
 export default function Habits() {
@@ -88,10 +86,18 @@ export default function Habits() {
   const [emoji, setEmoji] = useState(EMOJIS[0]); // выбранная иконка
   const [target, setTarget] = useState(7);       // выбранный цикл 7/14/21
 
-  /* ---------- СОХРАНЕНИЕ: любое изменение пишем в localStorage ---------- */
+  /* ---------- СОХРАНЕНИЕ: любое изменение пишем в «умное хранилище»
+     (localStorage под персональным ключом + облако Telegram) ---------- */
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
+    saveJSON(STORAGE_KEY, habits);
   }, [habits]);
+
+  /* ---------- ФОНОВАЯ СИНХРОНИЗАЦИЯ ----------
+     Если другое устройство (ПК/телефон) обновило привычки в облаке —
+     подтягиваем свежие данные без перезагрузки приложения. */
+  useEffect(() => onCloudUpdate(bases => {
+    if (bases.includes(STORAGE_KEY)) setHabits(loadHabits());
+  }), []);
 
   /* ---------- ВЫЧИСЛЯЕМЫЕ ВЕЛИЧИНЫ (useMemo) ---------- */
   const today = todayStr();
