@@ -16,6 +16,7 @@
 // ============================================================================
 
 import { loadJSON, saveJSON } from "./storage";
+import { addRating, RATING_GOAL_REWARD, RATING_GOAL_LATE, RATING_HABIT_DAY, RATING_HABIT_SERIES } from "./rating";
 
 const WALLET_KEY = "mb-wallet-v1"; // базовое имя ключа (к нему приклеивается id TG)
 
@@ -78,6 +79,29 @@ export function addGems(amount: number, reason = ""): void {
   saveWallet(w);                          // localStorage + облако TG
   console.log(`[wallet] ${amount >= 0 ? "+" : ""}${amount} 💎 (${reason}) → баланс ${w.gems}`);
   emit(w.gems);                           // шапка узнаёт о новом балансе
+  bumpRating(amount, reason);             // рейтинг растёт вместе с наградами
+}
+
+/* РЕЙТИНГ ⭐ — динамичная «звёздочка» бистро (см. lib/rating.ts).
+   Определяем тип события по тексту причины и меняем рейтинг:
+     • призовая цель (+3 💎)            -> +0.2
+     • просроченная цель (+1 💎)        -> +0.1
+     • день привычки (+2 💎 / −2 💎)    -> +0.1 / −0.1
+     • серия привычки (+5/+10/+15 💎)   -> +0.5
+     • прочее (покупки в магазине и т.п.)-> рейтинг не меняется */
+function bumpRating(amount: number, reason: string): void {
+  if (amount === 0) return;
+  let delta = 0;
+  if (reason.startsWith("цель")) {
+    delta = amount >= RATING_GOAL_REWARD * 10 ? RATING_GOAL_REWARD : RATING_GOAL_LATE;
+  } else if (reason.startsWith("просроченная цель")) {
+    delta = RATING_GOAL_LATE;
+  } else if (reason.startsWith("серия")) {
+    delta = amount > 0 ? RATING_HABIT_SERIES : -RATING_HABIT_SERIES;
+  } else if (reason.startsWith("день привычки") || reason.startsWith("отмена дня")) {
+    delta = amount > 0 ? RATING_HABIT_DAY : -RATING_HABIT_DAY;
+  }
+  if (delta !== 0) addRating(delta, reason);
 }
 
 
