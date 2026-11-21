@@ -7,6 +7,7 @@
    ============================================================ */ 
 import { useEffect, useState } from "react";
 import { loadWallet, onWalletChange } from "./lib/wallet";
+import { loadRating, onRatingChange, formatRating } from "./lib/rating";
 
 // ПРИНОСИМ СТРАНИЦЫ: говорим React, где лежат комнаты
 import Habits from "./pages/Habits";
@@ -73,11 +74,14 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState("restaurant");
    const [gems, setGems] = useState(() => loadWallet().gems);
+  // РЕЙТИНГ ⭐: стартует с 0.0, растёт от выполнений, сохраняется в профиле
+  const [rating, setRating] = useState(() => loadRating());
   useEffect(() => {
     const off = onWalletChange(setGems);
-    const onStorage = () => setGems(loadWallet().gems);
+    const offRating = onRatingChange(setRating);
+    const onStorage = () => { setGems(loadWallet().gems); setRating(loadRating()); };
     window.addEventListener("storage", onStorage);
-    return () => { off(); window.removeEventListener("storage", onStorage); };
+    return () => { off(); offRating(); window.removeEventListener("storage", onStorage); };
   }, []);
 
   return (
@@ -91,8 +95,8 @@ export default function App() {
           {/* Шапка */}
           <header className="mb-hdr">
             <div className="mb-hrow">
-              {/* МАКЕТНЫЕ ДАННЫЕ: уровень 1.6 */}
-              <span className="mb-lvl" title="Уровень бистро">1.6</span>
+              {/* РЕЙТИНГ бистро: старт 0.0, растёт от выполнений, сохраняется */}
+              <span className="mb-lvl" title="Рейтинг бистро">⭐ {formatRating(rating)}</span>
               <h1 className="mb-title">Мур-мур бистро</h1>
               {/* ЯКОРЬ:onClick открытия настроек. Пока кнопка просто выглядитClickable. */}
               <button type="button" className="mb-icobtn" title="Настройки">
