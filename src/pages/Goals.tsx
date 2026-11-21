@@ -18,6 +18,8 @@ import "./Goals.css";
 import { loadJSON, saveJSON } from "../lib/storage";
 // Кошелёк кристаллов 💎: начисление, защита от повторов (см. src/lib/wallet.ts)
 import { addGems, markGoalPaid } from "../lib/wallet";
+// Достижения профиля: первая выполненная цель -> +5 💎 (см. src/lib/achievements.ts)
+import { unlockAchievement } from "../lib/achievements";
 
 /* ---------- Правила игры (константы) ---------- */
 const MAX_PER_DAY = 10;     // максимум НОВЫХ целей за один день
@@ -52,6 +54,10 @@ export default function Goals() {
   /* ---------- СОСТОЯНИЯ ---------- */
   const [goals, setGoals] = useState<Goal[]>(loadGoals);
   const [draft, setDraft] = useState("");
+  /* id просроченной цели, которую только что выполнили: карточка на
+     секунду становится зелёной с галочкой, затем плавно исчезает */
+  const [justDoneLate, setJustDoneLate] = useState<string | null>(null);
+  const [lateGone, setLateGone] = useState(false);   // фаза «исчезает» анимации
 
   /* Любое изменение списка целей пишем в «умное хранилище» (localStorage + облако TG) */
   useEffect(() => {
@@ -83,10 +89,13 @@ export default function Goals() {
   const today = todayStr();
   const todays = useMemo(() => goals.filter(g => g.date === today), [goals, today]);
   const overdue = useMemo(() => goals.filter(g => g.date !== today && !g.done), [goals, today]);
+  /* Просроченные карточки для списка: обычные + «только что выполненная»
+     (она уже done, но остаётся видимой на время анимации исчезновения) */
+  const lateCards = useMemo(
+    () => (justDoneLate ? [...overdue, goals.find(g => g.id === justDoneLate)!].filter(Boolean) : overdue),
+    [overdue, goals, justDoneLate],
+  );
   const leftToday = Math.max(0, MAX_PER_DAY - todays.length);
- 
-
-
 
   /* ---------- ДЕЙСТВИЯ ---------- */
 
@@ -116,26 +125,43 @@ export default function Goals() {
         // ПЕРВОЕ выполнение призовой цели — платим её награду (3 💎)
         addGems(g.reward, `цель «${g.text}»`);
       }
+      unlockAchievement("first-goal"); // достижение «Первая цель» (+5 💎, один раз)
       return { ...g, done: true };          // отмечаем выполненной навсегда
-    }));                                     // ← ВОТ ЭТОЙ СКОБКИ У ВАС НЕ ХВАТАЛО
-  }                                           // ← и закрывающей скобки самой функции
+    }));
+  }
 
   /* Просроченная цель: награда падает до 1 💎, платим только при первом
      выполнении (paid). Бесплатные цели (reward=0) остаются без награды. */
   function completeLate(id: string) {
+    if (justDoneLate) return;                 // одна анимация за раз — ждём окончания
+    let completed = false;
     setGoals(prev => prev.map(g => {
       if (g.id !== id || g.done) return g;
+      completed = true;
       const lateReward = g.reward > 0 ? LATE_REWARD_GEMS : 0;
       if (lateReward > 0 && markGoalPaid(g.id)) {
         addGems(lateReward, `просроченная цель «${g.text}»`);  // +1 💎 один раз
       }
+      unlockAchievement("first-goal"); // просроченная тоже считается первой целью
       return { ...g, done: true, reward: lateReward };
     }));
+    if (!completed) return;
+    /* Карточка остаётся в списке на ~900 мс: сначала показываем галочку
+       и зелёный цвет, затем проигрываем анимацию исчезновения. */
+    setJustDoneLate(id);
+    setTimeout(() => setLateGone(true), 650);        // старт анимации исчезновения
+    setTimeout(() => {                               // удаление после конца анимации
+      setJustDoneLate(null);
+      setLateGone(false);
+      deleteGoal(id);
+    }, 950);
   }
 
   // Удаление цели. Выполненные НЕ удаляем — иначе можно «переиграть» награду.
+  // Исключение: цель только что выполнена с опозданием (justDoneLate) — её
+  // можно убрать из списка, награда уже выплачена и зафиксирована в paid.
   function deleteGoal(id: string) {
-    setGoals(prev => prev.filter(g => !(g.id === id && !g.done)));
+    setGoals(prev => prev.filter(g => !(g.id === id && (!g.done || g.id === justDoneLate))));
   }
 
   /* ---------- РАЗМЕТКА ---------- */
@@ -205,9 +231,9 @@ export default function Goals() {
           >
             <span className="gl-check">{g.done ? "✔" : ""}</span>
             <span className="gl-text">{g.text}</span>
-            {g.reward > 0
-              ? <span className="gl-reward">💎{g.reward}</span>
-              : <span className="gl-reward free" title={`Цель №${i + 1}: награду получают только первые ${REWARD_SLOTS} цели дня`}>без 💎</span>}
+            {/* награду показываем только у призовых целей (первые 3);
+                остальные — пусто, ничего не пишем */}
+            {g.reward > 0 && <span className="gl-reward">💎{g.reward}</span>}
             {!g.done && (
               <button
                 type="button"
@@ -219,20 +245,22 @@ export default function Goals() {
           </div>
         ))}
 
-        {/* Вчерашние незакрытые цели: выполнить с опозданием (1 💎) или удалить */}
-        {overdue.map(g => (
-          <div key={g.id} className={"gl-card late" + (g.reward === 0 ? " nofee" : "")} title="Цель из прошлого дня">
-            <span className="gl-check">!</span>
+        {/* Вчерашние незакрытые цели: выполняем кликом по чекбоксу (1 💎) или удаляем крестиком */}
+        {lateCards.map(g => (
+          <div
+            key={g.id}
+            className={
+              "gl-card late" +
+              (g.reward === 0 ? " nofee" : "") +
+              (g.done ? " done justdone" : "") +          // выполнено с опозданием: зелёная + галочка
+              (g.done && lateGone ? " gone" : "")          // затем плавно схлопывается и исчезает
+            }
+            title="Цель из прошлого дня"
+            onClick={() => completeLate(g.id)}   // клик по карточке = выполнить с опозданием
+          >
+            {/* обычный чекбокс-кружок слева: пустой → при клике станет ✔ */}
+            <span className="gl-check">{g.done ? "✔" : ""}</span>
             <span className="gl-text">{g.text}</span>
-            {g.reward > 0
-              ? <span className="gl-reward">💎{LATE_REWARD_GEMS}</span>
-              : <span className="gl-reward free">без 💎</span>}
-            <button
-              type="button"
-              className="gl-mark-late"
-              title={`Выполнить с опозданием (+${LATE_REWARD_GEMS} 💎)`}
-              onClick={() => completeLate(g.id)}
-            >✔</button>
             <button
               type="button"
               className="gl-del"

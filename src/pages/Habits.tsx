@@ -1,34 +1,29 @@
 /* ============================================================
-   Goals.tsx — «Цели дня»: рабочие TODO в стиле макета.
+   Habits.tsx — страница «Привычки».
 
-   Что умеет страница (и как это устроено):
-   1. Создавать цели — НЕ БОЛЕЕ 3 ЗА ДЕНЬ (лимит MAX_PER_DAY).
-      Счётчик целей привязан к дате создания, а не к текущему
-      списку: удалил цель — слот дня всё равно занят.
-   2. Отмечать выполнение кликом по карточке (галочка).
-   3. Удалять ещё невыполненную цель (крестик).
-   4. Всё хранится в localStorage — после перезагрузки страницы
-      цели и счётчик дня остаются на месте.
-   5. Вчерашние невыполненные цели помечаются «просрочено».
-
-   Награды (по описанию из макета): за каждую выполненную цель
-   игрок зарабатывает валюту; когда закрыты ВСЕ цели, созданные
-   сегодня, появляется баннер идеального дня (+5 💎).
-   ЯКОРЬ: здесь позже подключится реальный кошелёк игры
-   (монеты/кристаллы из App.tsx) — сейчас награды показаны
-   на карточках как в дизайне.
+   НОВЫЕ ПРАВИЛА (по дизайну):
+   • Одновременно можно держать НЕ БОЛЕЕ 3 активных привычек.
+   • Панель создания — СВЕРХУ, список привычек — ниже.
+   • Убраны «идеальный день» и предупреждающие плашки.
+   • Убрана надпись «новые привычки появятся завтра».
+   • Награды в кристаллах 💎 (через общий кошелёк lib/wallet):
+       - за каждый выполненный день серии      -> +2 💎;
+       - бонус за серию 7 / 14 / 21 дней       -> +5 / +10 / +15 💎.
    ============================================================ */
 
 import { useEffect, useMemo, useState } from "react";
 import "./Habits.css";
+// Общий кошелёк кристаллов: начисление + подписка шапки (см. src/lib/wallet.ts)
+import { addGems, markGoalPaid } from "../lib/wallet";
+// Достижения профиля: первая выполненная привычка -> +5 💎 (см. src/lib/achievements.ts)
+import { unlockAchievement } from "../lib/achievements";
 
 /* ---------- Правила игры (константы) ---------- */
-const MAX_PER_DAY = 3;   // максимум НОВЫХ привычек за один день
-const PERFECT_BONUS = 5; // дизайн: +5 💎 за идеальный день
-const MAX_LEN = 40;      // защита: длина названия привычки
-// Циклы серий: каждые N закрытых дней выдаём порцию кристаллов
-const STREAK_STEP = 7;
-const GEMS_PER_STEP = 3;
+const MAX_ACTIVE = 3;      // максимум ОДНОВРЕМЕННЫХ активных привычек
+const DAILY_GEM = 2;       // +2 💎 за каждый выполненный день серии
+const MAX_LEN = 40;        // защита: длина названия привычки
+// Бонусы за полное закрытие серии: target -> crystals
+const STREAK_BONUS: Record<number, number> = { 7: 5, 14: 10, 21: 15 };
 // Эмодзи, между которыми «крутится» кнопка выбора иконки
 const EMOJIS = ["💪", "📚", "💧", "🧘", "🌅", "🦷", "🚶", "🥗"];
 
@@ -36,7 +31,7 @@ const EMOJIS = ["💪", "📚", "💧", "🧘", "🌅", "🦷", "🚶", "🥗"];
    target   — длительность серии (7 / 14 / 21 день),
    streak   — сколько дней подряд уже закрыто,
    lastMark — последний отмеченный день 'ГГГГ-ММ-ДД',
-   created  — день создания (тратит дневной слот). */
+   created  — день создания. */
 type Habit = {
   id: string;
   name: string;
@@ -57,14 +52,7 @@ function dateStr(d: Date): string {
 }
 const todayStr = () => dateStr(new Date());
 
-// Дата «позавчера»: нужно для проверки просрочки серии
-function yesterday2Str(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 2);
-  return dateStr(d);
-}
-
-/* Серия считается ЖИВОЙ, если последний день отметки — сегодня или вчера. */
+// Серия считается ЖИВОЙ, если последний день отметки — сегодня или вчера.
 function isAlive(h: Habit, today: string): boolean {
   if (!h.lastMark) return false;
   const y = new Date();
@@ -72,13 +60,14 @@ function isAlive(h: Habit, today: string): boolean {
   return h.lastMark === today || h.lastMark === dateStr(y);
 }
 
-/* Сколько кристаллов привычка уже «заработала»: по 3 💎 за каждые 7 дней */
-function earnedGems(h: Habit): number {
-  return Math.floor(Math.min(h.streak, h.target) / STREAK_STEP) * GEMS_PER_STEP;
+/* Сколько кристаллов привычка уже «заработала»: дни × 2 + бонус за закрытую серию */
+function earnedFor(h: Habit): number {
+  const done = Math.min(h.streak, h.target);
+  return done * DAILY_GEM + (done >= h.target ? (STREAK_BONUS[h.target] ?? 0) : 0);
 }
 
-/* Ключ хранилища. Версия v1 — если правила изменятся, поднимем версию. */
-const STORAGE_KEY = "mb-habits-v1";
+/* Ключ хранилища. Версия v2 — новые правила наград/лимита. */
+const STORAGE_KEY = "mb-habits-v2";
 
 /* Читаем привычки из localStorage; битые данные → пустой список. */
 function loadHabits(): Habit[] {
@@ -95,9 +84,9 @@ function loadHabits(): Habit[] {
 export default function Habits() {
   /* ---------- СОСТОЯНИЯ (useState) ---------- */
   const [habits, setHabits] = useState<Habit[]>(loadHabits);
-  const [draft, setDraft] = useState("");     // набранный текст новой привычки
+  const [draft, setDraft] = useState("");        // набранный текст новой привычки
   const [emoji, setEmoji] = useState(EMOJIS[0]); // выбранная иконка
-  const [target, setTarget] = useState(7);    // выбранный цикл 7/14/21
+  const [target, setTarget] = useState(7);       // выбранный цикл 7/14/21
 
   /* ---------- СОХРАНЕНИЕ: любое изменение пишем в localStorage ---------- */
   useEffect(() => {
@@ -107,60 +96,64 @@ export default function Habits() {
   /* ---------- ВЫЧИСЛЯЕМЫЕ ВЕЛИЧИНЫ (useMemo) ---------- */
   const today = todayStr();
 
-  // Привычки, созданные сегодня — по ним считаем дневной лимит
-  const todays = useMemo(() => habits.filter(h => h.created === today), [habits, today]);
-  // Просроченные серии: живая цепочка, но сегодня ещё НЕ отмечено
-  const dueToday = useMemo(
-    () => habits.filter(h => isAlive(h, today) && h.lastMark !== today && h.streak < h.target),
-    [habits, today],
-  );
-  // Оборванные серии: отмечали позавчера и раньше, но не вчера/сегодня
-  const broken = useMemo(
-    () => habits.filter(h => h.lastMark !== null && h.lastMark !== today && h.lastMark !== yesterday2Str() && !isAlive(h, today)),
-    [habits, today],
-  );
+  // Завершённые (серия полностью закрыта) — в лимит НЕ входят.
+  const isComplete = (h: Habit) => h.streak >= h.target;
 
-  // Сколько новых привычек ОСТАЛОСЬ создать сегодня (не может быть < 0)
-  const leftToday = Math.max(0, MAX_PER_DAY - todays.length);
-  // Идеальный день: есть привычки И все, что надо отметить сегодня, отмечены
-  const perfectDay = habits.length > 0 && dueToday.length === 0;
+  // Активные = незакрытые привычки. Именно их лимит: 3 шт.
+  // Если 2 из 3 серий закрыты — можно добавить ещё две новые.
+  const activeCount = useMemo(
+    () => habits.filter(h => !isComplete(h)).length,
+    [habits],
+  );
+  const canAdd = activeCount < MAX_ACTIVE;
 
   /* ---------- ДЕЙСТВИЯ (обработчики) ---------- */
 
-  // Создание привычки: проверяем лимит и длину, дописываем в список
+  // Создание привычки: проверяем лимит активных привычек и длину названия
   function addHabit() {
     const name = draft.trim();
-    if (!name) return;            // пустую привычку не создаём
-    if (leftToday <= 0) return;   // 🔒 главный фильтр: не более 3 за день
+    if (!name || !canAdd) return;          // 🔒 главный фильтр: не более 3 активных
     const habit: Habit = {
-      id: crypto.randomUUID(),    // уникальные id без внешних библиотек
+      id: crypto.randomUUID(),             // уникальные id без внешних библиотек
       name: name.slice(0, MAX_LEN),
-      emoji,                      // фиксируем выбранную иконку
-      target,                     // фиксируем выбранный цикл 7/14/21
+      emoji,                               // фиксируем выбранную иконку
+      target,                              // фиксируем выбранный цикл 7/14/21
       streak: 0,
       lastMark: null,
-      created: today,             // день создания — он тратит слот дня
+      created: today,
     };
     setHabits(prev => [...prev, habit]);
     setDraft("");
   }
 
-  // Отметка «сделано сегодня»: +1 к серии (или −1 при снятии отметки)
+  // Отметка «сделано сегодня»: +1 к серии (+2 💎) либо честный откат (−2 💎)
   function markToday(id: string) {
     setHabits(prev => prev.map(h => {
       if (h.id !== id) return h;
       if (h.lastMark === today) {
-        // Уже отмечено сегодня → снимаем отметку (честный откат)
+        // Уже отмечено сегодня → снимаем отметку и забираем дневную награду
+        if (h.streak > 0) addGems(-DAILY_GEM, `отмена дня привычки «${h.name}»`);
         return { ...h, streak: Math.max(0, h.streak - 1), lastMark: null };
       }
       // Не отмечено: если вчерашний день пропущен — серия начинается заново
       const alive = isAlive(h, today);
       const base = alive ? h.streak : 0;
-      return { ...h, streak: Math.min(base + 1, h.target), lastMark: today };
+      const next = Math.min(base + 1, h.target);
+      // Дневная награда: +2 💎 за каждый выполненный день
+      addGems(DAILY_GEM, `день привычки «${h.name}»`);
+      unlockAchievement("first-habit"); // достижение «Первая привычка» (+5 💎, один раз)
+      // Бонус за полностью закрытую серию: 7→+5, 14→+10, 21→+15 💎 (один раз)
+      if (next >= h.target) {
+        const bonus = STREAK_BONUS[h.target] ?? 0;
+        if (bonus > 0 && markGoalPaid(`${h.id}:streak:${h.target}`)) {
+          addGems(bonus, `серия ${h.target} дней «${h.name}»`);
+        }
+      }
+      return { ...h, streak: next, lastMark: today };
     }));
   }
 
-  // Удаление привычки. Слот дня НЕ возвращается: лимит честный.
+  // Удаление привычки из списка
   function deleteHabit(id: string) {
     setHabits(prev => prev.filter(h => h.id !== id));
   }
@@ -175,29 +168,64 @@ export default function Habits() {
   return (
     <div className="hb-wrap">
 
-      {/* Шапка: название + живой счётчик «создано / лимит» */}
+      {/* Шапка: название + живой счётчик «активных / лимит» */}
       <div className="hb-head">
         <h2 className="hb-title">🔥 Привычки</h2>
-        <span className="hb-counter" title={`Можно создавать не более ${MAX_PER_DAY} привычек в день`}>
-          сегодня {todays.length}/{MAX_PER_DAY}
+        <span className="hb-counter" title={`Одновременно можно держать не более ${MAX_ACTIVE} привычек`}>
+          активных {activeCount}/{MAX_ACTIVE}
         </span>
       </div>
 
-      {/* Плашки-предупреждения: просроченные отметки и оборванные серии */}
-      {dueToday.length > 0 && (
-        <div className="hb-overdue">⏰ Не отмечено сегодня: {dueToday.length}</div>
-      )}
-      {broken.length > 0 && (
-        <div className="hb-overdue">💔 Пропущен день — серия обнулилась: {broken.length}</div>
-      )}
+      {/* ══ ПАНЕЛЬ СОЗДАНИЯ — СВЕРХУ ══ */}
+      <div className="hb-form">
+        {/* Кнопка-эмодзи: клик меняет иконку будущей привычки */}
+        <button type="button" className="hb-pick" title="Выбрать иконку" onClick={nextEmoji}>
+          {emoji}
+        </button>
+        <input
+          className="hb-input"
+          value={draft}
+          maxLength={MAX_LEN}
+          placeholder="Новая привычка…"
+          disabled={!canAdd}                 /* лимит достигнут — поле неактивно */
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") addHabit(); }} /* Enter = добавить */
+        />
+        {/* ГЛАВНЫЙ «ПЛЮСИК»: большая зелёная кнопка добавления */}
+        <button
+          type="button"
+          className="hb-add"
+          title={canAdd ? "Добавить привычку" : `Лимит ${MAX_ACTIVE} активных привычек`}
+          onClick={addHabit}
+          disabled={!canAdd || draft.trim() === ""}
+        >+</button>
+      </div>
 
-      {/* Список привычек: flex:1 тянет зону на всю рабочую область */}
+      {/* Выбор цикла серии: 7 / 14 / 21 день */}
+      <div className="hb-form hb-cycles">
+        {[7, 14, 21].map(t => (
+          <button
+            key={t}
+            type="button"
+            className={"hb-cycle" + (target === t ? " on" : "")}
+            title={`Серия на ${t} дней — бонус +${STREAK_BONUS[t]} 💎`}
+            onClick={() => setTarget(t)}
+          >{t} дн.</button>
+        ))}
+      </div>
+
+      {/* Подсказка про награды */}
+      <div className="hb-hint">
+        За каждый день серии — +{DAILY_GEM} 💎, бонус за серию 7/14/21 дней — +5/+10/+15 💎.
+      </div>
+
+      {/* Список привычек — НИЖЕ панели создания */}
       <div className="hb-list">
         {habits.length === 0 && (
           <div className="hb-empty">
             <span className="big">🌱</span>
             Пока нет ни одной привычки.<br />
-            Придумай первую — можно создавать не более {MAX_PER_DAY} в день!
+            Придумай первую!
           </div>
         )}
 
@@ -217,92 +245,34 @@ export default function Habits() {
                 <div className="hb-bar"><i style={{ width: `${pct}%` }} /></div>
                 <div className="hb-meta">
                   <span className="hb-streak">🔥 {h.streak}/{h.target} дн.</span>
-                  {/* Награда: сколько 💎 принесла серия (каждые 7 дней +3💎) */}
-                  <span className="hb-reward">💎 {earnedGems(h)}</span>
+                  {/* Награда: сколько 💎 принесла серия (дни×2 + бонус) */}
+                  <span className="hb-reward">💎 {earnedFor(h)}</span>
                   {complete && <span>🏆 Серия закрыта!</span>}
                 </div>
               </div>
 
-              {/* Круглая кнопка отметки дня: ✔ = сегодня закрыто */}
-              <button
-                type="button"
-                className={"hb-mark" + (markedToday ? " on" : "")}
-                title={markedToday ? "Снять отметку за сегодня" : "Отметить: сделано сегодня"}
-                onClick={() => markToday(h.id)}
-              >✔</button>
+              {/* Правая колонка: чекбокс и крестик стоят вертикально */}
+              <div className="hb-actions">
+                {/* Круглая кнопка отметки дня: ✔ = сегодня закрыто */}
+                <button
+                  type="button"
+                  className={"hb-mark" + (markedToday ? " on" : "")}
+                  title={markedToday ? "Снять отметку за сегодня" : "Отметить: сделано сегодня"}
+                  onClick={() => markToday(h.id)}
+                >✔</button>
 
-              {/* Крестик: удалить можно только привычку, созданную сегодня */}
-              {h.created === today && !markedToday && (
+                {/* Крестик: удалить привычку */}
                 <button
                   type="button"
                   className="hb-del"
                   title="Удалить привычку"
                   onClick={() => deleteHabit(h.id)}
                 >✕</button>
-              )}
+              </div>
             </div>
           );
         })}
       </div>
-
-      {/* Баннер идеального дня: все сегодняшние отметки закрыты */}
-      {perfectDay && habits.length > 0 && dueToday.length === 0 && (
-        <div className="hb-perfect">🌟 Все отметки на сегодня закрыты! +{PERFECT_BONUS} 💎</div>
-      )}
-
-      {/* ══ ПАНЕЛЬ СОЗДАНИЯ: тот самый «плюсик» ══ */}
-      <div className="hb-form">
-        {/* Кнопка-эмодзи: клик меняет иконку будущей привычки */}
-        <button type="button" className="hb-pick" title="Выбрать иконку" onClick={nextEmoji}>
-          {emoji}
-        </button>
-        <input
-          className="hb-input"
-          value={draft}
-          maxLength={MAX_LEN}
-          placeholder="Новая привычка…"
-          disabled={leftToday === 0}          /* исчерпан лимит — поле неактивно */
-          onChange={e => setDraft(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter") addHabit(); }} /* Enter = добавить */
-        />
-        {/* ГЛАВНЫЙ «ПЛЮСИК»: большая зелёная кнопка добавления */}
-        <button
-          type="button"
-          className="hb-add"
-          title={leftToday === 0 ? "Лимит 3 привычки на сегодня исчерпан" : "Добавить привычку"}
-          onClick={addHabit}
-          disabled={leftToday === 0 || draft.trim() === ""}
-        >+</button>
-      </div>
-
-      {/* Выбор цикла серии: 7 / 14 / 21 день — как в описании дизайна */}
-      <div className="hb-form" style={{ marginTop: 8 }}>
-        {[7, 14, 21].map(t => (
-          <button
-            key={t}
-            type="button"
-            className="hb-pick"
-            style={{
-              width: "auto",
-              padding: "0 14px",
-              fontSize: 14,
-              fontWeight: 900,
-              borderColor: target === t ? "var(--green)" : "var(--cream3)",
-              background: target === t ? "var(--green-soft)" : "#FFFBEE",
-            }}
-            title={`Серия на ${t} дней`}
-            onClick={() => setTarget(t)}
-          >{t} дн.</button>
-        ))}
-
-      </div>
-
-      {/* Подсказка: меняет текст в зависимости от ситуации с лимитом */}
-      <div className="hb-hint">
-        {leftToday === 0
-          ? `Лимит ${MAX_PER_DAY} привычек на сегодня исчерпан. Новые появятся завтра.`
-          : `За каждые ${STREAK_STEP} дней серии — +${GEMS_PER_STEP} 💎, за идеальный день — +${PERFECT_BONUS} 💎. Ещё можно создать сегодня: ${leftToday}.`}
-      </div>
     </div>
   );
- }
+}
