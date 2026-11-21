@@ -24,37 +24,32 @@
 
 /* Заголовок — крупный, как в дизайне приложения */
 .gl-title {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 900;
   color: var(--ink);
 }
 
-/* Счётчик-«таблетка»: сколько целей ещё можно создать */
+/* Счётчик-«таблетка»: сколько целей ещё можно создать (одинаковый стиль с hb-counter) */
 .gl-counter {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 800;
-  height: 25px;
-  width: 90px;
+  white-space: nowrap;
   background: var(--cream2);
   border: 2px solid var(--amber-line);
-  border-radius: 12px;
+  border-radius: 10px;
+  padding: 4px 9px;
   color: var(--ink-soft);
-  display: inline-flex;      /* флекс нужен, чтобы text-align/align-свойства работали */
-  align-items: center;       /* центрирование текста по вертикали */
-  justify-content: center;   /* центрирование текста по горизонтали */
-  text-align: center;        /* на всякий случай для многострочного текста */
-  box-sizing: border-box;    /* width/height включают padding и border — рамка не «прыгает» */
 }
 
 /* Просроченные цели из вчерашнего дня — мягкая оранжевая плашка */
 .gl-overdue {
   display: flex;               
   align-items: center;
-  height: 28px;
-  align-self: stretch;         /* ширина = вся рабочая область */
-  margin: 5px 0;        
-  padding:  0px 10px;      
-  font-size: 12.5px;
+  height: 24px;
+  align-self: stretch;
+  margin: 4px 0;
+  padding: 0px 9px;
+  font-size: 11px;
   font-weight: 800;
   background: #FBE3D3;
   border: 2px solid #E8833A;
@@ -69,8 +64,8 @@
   overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 2px 4px;
+  gap: 8px;
+  padding: 9px 2px 4px;
   scrollbar-width: thin;
   scrollbar-color: #D9C48F transparent;
 }
@@ -87,22 +82,22 @@
   gap: 8px;
   text-align: center;
   color: var(--ink-soft);
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
   line-height: 1.6;
 }
-.gl-empty .big { font-size: 42px; }
+.gl-empty .big { font-size: 34px; }
 
 /* ══ Одна карточка-цель ══ */
 .gl-card {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 13px 15px;
+  gap: 9px;
+  padding: 9px 11px;
   background: #FFFBEE;
   border: 2px solid var(--cream3);
-  border-radius: 16px;
+  border-radius: 13px;
   box-shadow: 0 4px 10px -6px rgba(74, 55, 40, .35);
   cursor: pointer;               /* вся карточка кликабельна = галочка */
   user-select: none;
@@ -113,13 +108,13 @@
 /* Чекбокс — круглая кнопка слева */
 .gl-check {
   flex: none;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: 2px solid var(--green-line);
   background: var(--green-soft);
   color: var(--green-deep);
-  font-size: 16px;
+  font-size: 13.5px;
   font-weight: 900;
   display: flex;
   align-items: center;
@@ -131,7 +126,7 @@
 .gl-text {
   flex: 1;
   min-width: 0;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1.4;
   word-break: break-word;
@@ -140,13 +135,13 @@
 /* Награда — золотой бейдж справа */
 .gl-reward {
   flex: none;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 900;
   color: var(--green-deep);
   background: var(--amber-soft);
   border: 2px solid var(--amber-line);
-  border-radius: 11px;
-  padding: 5px 9px;
+  border-radius: 9px;
+  padding: 3px 7px;
   white-space: nowrap;
 }
 
@@ -166,31 +161,9 @@
   text-decoration: line-through;
 }
 
-/* Кнопка «выполнить с опозданием» у просроченных целей:
-   круглая зелёная галочка — та же форма, что и hb-mark в привычках,
-   но чуть меньше, чтобы влезла в карточку рядом с крестиком. */
-.gl-mark-late {
-  flex: none;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 2px solid var(--green-deep);
-  background: var(--green-soft);
-  color: var(--green-deep);
-  font-size: 15px;
-  font-weight: 900;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform .12s, background .15s;
-}
-.gl-mark-late:hover { background: var(--green); color: #fff; }
-.gl-mark-late:active { transform: scale(.9); }
-
-/* Кнопка-крестик: удалить цель (можно только НЕ выполненную) */
-
-/* ── Состояние «просрочено» (не сделано вчера): оранжевая рамка ── */
+/* ── Состояние «просрочено» (не сделано вчера): оранжевая рамка ──
+   Отдельной кнопки-галочки больше нет: просроченная цель выполняется
+   кликом по обычному чекбоксу слева (или по всей карточке). */
 .gl-card.late {
   border-color: #E8833A;
   background: #FBE3D3;
@@ -198,16 +171,51 @@
 .gl-card.late .gl-check { border-color: #E8833A; color: #A4501F; background: #fff; }
 .gl-card.late .gl-text  { color: #A4501F; }
 
+/* ── Анимация «выполнено с опозданием»: карточка на мгновение становится
+   зелёной с галочкой (glPopLate), затем плавно схлопывается и исчезает
+   (переход к классу .gone) — после чего цель убирается из списка. ── */
+.gl-card.justdone {
+  border-color: var(--green-line);
+  background: var(--green-soft);
+  animation: glPopLate .25s ease;
+  max-height: 120px;           /* базовое значение для плавного схлопывания */
+  transition: opacity .3s ease, transform .3s ease,
+              max-height .3s ease, padding .3s ease, border-width .3s ease;
+}
+.gl-card.justdone .gl-check {
+  background: var(--green);
+  border-color: var(--green-deep);
+  color: #fff;
+}
+.gl-card.justdone .gl-del { visibility: hidden; }   /* крестик прячем во время анимации */
+
+@keyframes glPopLate {
+  0%   { transform: scale(.97); }
+  55%  { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+/* Финальный кадр: карточка схлопывается и уезжает вправо */
+.gl-card.justdone.gone {
+  opacity: 0;
+  transform: translateX(24px) scale(.96);
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: -8px;          /* компенсируем gap списка, чтобы карточки «съезжались» */
+  border-width: 0;
+  overflow: hidden;
+}
+
 /* Кнопка-крестик: удалить цель (можно только НЕ выполненную) */
 .gl-del {
   flex: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
+  width: 25px;
+  height: 25px;
+  border-radius: 8px;
   border: 2px solid var(--cream3);
   background: var(--cream2);
   color: var(--ink-soft);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 900;
   cursor: pointer;
   transition: color .15s, border-color .15s;
@@ -238,21 +246,21 @@
 .gl-form {
   flex: none;
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 6px;
+  margin-top: 9px;
 }
 
 .gl-input {
   flex: 1;
   min-width: 0;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--ink);
   background: #FFFBEE;
   border: 2px solid var(--cream3);
-  border-radius: 13px;
-  padding: 10px 13px;
+  border-radius: 11px;
+  padding: 7px 10px;
 }
 .gl-input:focus { outline: none; border-color: var(--green-line); }
 .gl-input::placeholder { color: var(--ink-soft); }
@@ -261,13 +269,13 @@
 /* ГЛАВНАЯ КНОПКА «ПЛЮСИК»: крупная матчевая «+», как в дизайне */
 .gl-add {
   flex: none;
-  width: 46px;
-  height: 46px;
-  border-radius: 13px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
   border: none;
   background: var(--green);
   color: #fff;
-  font-size: 26px;
+  font-size: 21px;
   font-weight: 900;
   line-height: 1;
   cursor: pointer;
@@ -280,8 +288,8 @@
 /* Подсказка-предупреждение под формой (например «лимит 3 исчерпан») */
 .gl-hint {
   flex: none;
-  margin-top: 8px;
-  font-size: 11.5px;
+  margin-top: 6px;
+  font-size: 10.5px;
   font-weight: 700;
   line-height: 1.5;
   color: var(--ink-soft);
@@ -296,4 +304,5 @@
 /* Забота о тех, кого укачивает: отключаем анимацию по настройке системы */
 @media (prefers-reduced-motion: reduce) {
   .gl-perfect { animation: none; }
+  .gl-card.justdone { animation: none; transition: none; }
   }

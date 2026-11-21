@@ -35,45 +35,41 @@ body { background: #15100C; -webkit-font-smoothing: antialiased; }
 
 
 /* --- Шапка: уровень, название, шестерёнка --- */
-.mb-hdr { padding: 45px 18px 10px; flex: none; }
+.mb-hdr { padding: 34px 14px 8px; flex: none; }
 .mb-hdr > * { animation: mbUp .5s cubic-bezier(.22,1,.36,1) both; }
 .mb-hdr > *:nth-child(2) { animation-delay: .08s; } /* вторая строка выезжает чуть позже — «ступеньки» */
-.mb-hrow { display: flex; align-items: center; gap: 10px; }
-.mb-lvl { background: var(--green); color: #fff; font-weight: 900; font-size: 16px; padding: 5px 10px; border-radius: 10px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.15); }
-.mb-title { font-size: 21px; font-weight: 900; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mb-icobtn { width: 36px; height: 36px; flex: none; border-radius: 11px; border: none; background: var(--cream2); color: var(--ink); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .12s, background .15s; }
+.mb-hrow { display: flex; align-items: center; gap: 8px; }
+.mb-lvl { background: var(--green); color: #fff; font-weight: 900; font-size: 13.5px; padding: 4px 8px; border-radius: 9px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.15); }
+.mb-title { font-size: 17.5px; font-weight: 900; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mb-icobtn { width: 30px; height: 30px; flex: none; border-radius: 9px; border: none; background: var(--cream2); color: var(--ink); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .12s, background .15s; }
 .mb-icobtn:hover { background: var(--cream3); }
 .mb-icobtn:active { transform: scale(.92); } /* тактильный «нажим» — чистый CSS, не механика */
 
 /* --- Кошелёк: монеты, кристаллы, доход --- */
-.mb-wallet { display: flex; align-items: center; gap: 9px; margin-top: 13px; }
-.mb-pill { display: flex; align-items: center; gap: 7px; font-weight: 900; font-size: 16px; padding: 6px 13px; border-radius: 13px; }
+.mb-wallet { display: flex; align-items: center; gap: 7px; margin-top: 9px; }
+.mb-pill { display: flex; align-items: center; gap: 5px; font-weight: 900; font-size: 13px; padding: 4px 10px; border-radius: 11px; }
 .mb-pill.coin { background: var(--amber-soft); border: 2px solid var(--amber-line); }
-.mb-pill.gem { background: var(--green-soft); border: 2px solid var(--green-line); font-size: 15px; }
-.mb-income { margin-left: auto; background: var(--cream2); color: #5B8C5A; font-weight: 900; font-size: 13.5px; padding: 8px 12px; border-radius: 11px; white-space: nowrap; }
+.mb-pill.gem { background: var(--green-soft); border: 2px solid var(--green-line); font-size: 12.5px; }
+.mb-income { margin-left: auto; background: var(--cream2); color: #5B8C5A; font-weight: 900; font-size: 11.5px; padding: 5px 9px; border-radius: 9px; white-space: nowrap; }
 
 /* --- Контент: единственная прокручиваемая зона --- */
-.mb-content { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px 16px; }
+.mb-content { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px 12px; }
 /* Полоса прокрутки в цветах кафе, а не серая системная */
 .mb-scroll { scrollbar-width: thin; scrollbar-color: #D9C48F transparent; }
 .mb-scroll::-webkit-scrollbar { width: 8px; }
 .mb-scroll::-webkit-scrollbar-track { background: transparent; }
 .mb-scroll::-webkit-scrollbar-thumb { background: #D9C48F; border-radius: 8px; border: 2px solid var(--cream); }
 .mb-scroll::-webkit-scrollbar-thumb:hover { background: #C9AE6E; }
-.mb-page { animation: mbUp .35s cubic-bezier(.22,1,.36,1) both; display: flex; flex-direction: column; gap: 12px; }
+.mb-page { animation: mbUp .35s cubic-bezier(.22,1,.36,1) both; display: flex; flex-direction: column; gap: 9px; }
 
-/* --- Информационные чипы  --- */
-.mb-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-.mb-chip { display: flex; align-items: center; gap: 6px; background: #FFFBEE; border: 2px solid var(--cream3); border-radius: 11px; padding: 6px 11px; font-size: 12.5px; font-weight: 800; }
-.mb-chip b { font-weight: 900; color: var(--green-deep); }
-.mb-note { background: var(--cream2); border-radius: 13px; padding: 10px 13px; font-size: 12px; font-weight: 700; color: var(--ink-soft); line-height: 1.5; }
+.mb-note { background: var(--cream2); border-radius: 11px; padding: 8px 10px; font-size: 11px; font-weight: 700; color: var(--ink-soft); line-height: 1.5; }
 .mb-note b { color: var(--green-deep); font-weight: 900; }
 
 /* --- Нижняя навигация --- */
-.mb-nav { flex: none; background: var(--nav); border-top: 2px solid #E3D3A8; display: flex; padding: 12px 8px 20px; gap: 2px; animation: mbUp .5s .15s cubic-bezier(.22,1,.36,1) both; }
-.mb-tab { flex: 1; min-width: 0; border: none; background: none; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 8px 2px; border-radius: 14px; color: #7A6647; transition: background .18s, color .18s, transform .12s; position: relative; }
+.mb-nav { flex: none; background: var(--nav); border-top: 2px solid #E3D3A8; display: flex; padding: calc(10px + env(safe-area-inset-bottom, 0px)) 14px 14px; gap: 6px; animation: mbUp .5s .15s cubic-bezier(.22,1,.36,1) both; }
+.mb-tab { flex: 1; min-width: 0; border: none; background: none; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px 2px; border-radius: 12px; color: #7A6647; transition: background .18s, color .18s, transform .12s; position: relative; }
 .mb-tab:active { transform: scale(.94); }
-.mb-tab .lbl { font-size: 10.5px; font-weight: 800; white-space: nowrap; }
+.mb-tab .lbl { font-size: 10px; font-weight: 800; white-space: nowrap; }
 
 /* Активная вкладка — зелёная «таблетка». В макете класс задан вручную */
 .mb-tab.is-active { background: var(--green); color: #fff; box-shadow: inset 0 -3px 0 rgba(0,0,0,.16), 0 6px 12px -6px rgba(63,97,64,.55); }
@@ -139,3 +135,6 @@ body { background: #15100C; -webkit-font-smoothing: antialiased; }
   .mb-caption { display: none; }
   .mb-frame { width: 100%; height: 100vh; height: 100dvh; border-radius: 0; border: none; box-shadow: none; }
 }
+/* ── Уменьшенный UI: иконки в шапке и кошельке стали чуть меньше ── */
+.mb-hdr svg { width: 16px; height: 16px; }
+.mb-wallet svg { width: 15px; height: 15px; }

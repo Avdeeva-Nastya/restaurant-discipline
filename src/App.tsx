@@ -7,6 +7,7 @@
    ============================================================ */ 
 import { useEffect, useState } from "react";
 import { loadWallet, onWalletChange } from "./lib/wallet";
+import { loadRating, onRatingChange, formatRating } from "./lib/rating";
 
 // ПРИНОСИМ СТРАНИЦЫ: говорим React, где лежат комнаты
 import Habits from "./pages/Habits";
@@ -58,12 +59,12 @@ function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
 
 /* ---------- Оглавление вкладок ----------*/
 
-const TABS = [
-  { id: "restaurant", label: "Ресторан" },
-  { id: "goals", label: "Цели" },
-  { id: "habits", label: "Привычки" },
-  { id: "shop", label: "Магазин" },
-  { id: "profile", label: "Профиль" }
+const TABS: { id: string; label: string; icon: IconName }[] = [
+  { id: "restaurant", label: "Ресторан", icon: "cloche" },
+  { id: "goals", label: "Цели", icon: "book" },
+  { id: "habits", label: "Привычки", icon: "hat" },
+  { id: "shop", label: "Магазин", icon: "store" },
+  { id: "profile", label: "Профиль", icon: "chart" }
 ];
 
 /* ---------- Сам экран ---------- */
@@ -73,11 +74,14 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState("restaurant");
    const [gems, setGems] = useState(() => loadWallet().gems);
+  // РЕЙТИНГ ⭐: стартует с 0.0, растёт от выполнений, сохраняется в профиле
+  const [rating, setRating] = useState(() => loadRating());
   useEffect(() => {
     const off = onWalletChange(setGems);
-    const onStorage = () => setGems(loadWallet().gems);
+    const offRating = onRatingChange(setRating);
+    const onStorage = () => { setGems(loadWallet().gems); setRating(loadRating()); };
     window.addEventListener("storage", onStorage);
-    return () => { off(); window.removeEventListener("storage", onStorage); };
+    return () => { off(); offRating(); window.removeEventListener("storage", onStorage); };
   }, []);
 
   return (
@@ -91,8 +95,8 @@ export default function App() {
           {/* Шапка */}
           <header className="mb-hdr">
             <div className="mb-hrow">
-              {/* МАКЕТНЫЕ ДАННЫЕ: уровень 1.6 */}
-              <span className="mb-lvl" title="Уровень бистро">1.6</span>
+              {/* РЕЙТИНГ бистро: старт 0.0, растёт от выполнений, сохраняется */}
+              <span className="mb-lvl" title="Рейтинг бистро">⭐ {formatRating(rating)}</span>
               <h1 className="mb-title">Мур-мур бистро</h1>
               {/* ЯКОРЬ:onClick открытия настроек. Пока кнопка просто выглядитClickable. */}
               <button type="button" className="mb-icobtn" title="Настройки">
@@ -111,12 +115,6 @@ export default function App() {
           {/* Контент: иллюстрация зала + статичные информационные карточки */}
           <main className="mb-content mb-scroll">
           
-              {/* МАКЕТНЫЕ ДАННЫЕ: цифры ниже нарисованы для красоты макета */}
-              <div className="mb-chips">
-                <span className="mb-chip">🐈 В зале: <b>2/4</b></span>
-                <span className="mb-chip">🍽️ Сегодня: <b>12</b></span>
-                <span className="mb-chip">💝 Чаевые: <b>×1.00</b></span>
-              </div>
 {/* ОБЛАСТЬ КОНТЕНТА: показываем ту страницу, что на стикере */}
                <div style={{ minHeight: 200, padding: 10 }}>
                   {activeTab === "restaurant" && <Restaurant />}
@@ -138,7 +136,8 @@ export default function App() {
             // КНОПКА ЗВОНКА: при клике переписываем стикер на id этой кнопки
             onClick={() => setActiveTab(tab.id)}
           >
-            {tab.label}
+            <span className="ico"><Icon name={tab.icon} size={20} /></span>
+            <span className="lbl">{tab.label}</span>
           </button>
         ))}
       </nav>
