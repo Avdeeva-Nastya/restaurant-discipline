@@ -111,12 +111,6 @@ export default function App() {
           {/* Контент: иллюстрация зала + статичные информационные карточки */}
           <main className="mb-content mb-scroll">
           
-              {/* МАКЕТНЫЕ ДАННЫЕ: цифры ниже нарисованы для красоты макета */}
-              <div className="mb-chips">
-                <span className="mb-chip">🐈 В зале: <b>2/4</b></span>
-                <span className="mb-chip">🍽️ Сегодня: <b>12</b></span>
-                <span className="mb-chip">💝 Чаевые: <b>×1.00</b></span>
-              </div>
 {/* ОБЛАСТЬ КОНТЕНТА: показываем ту страницу, что на стикере */}
                <div style={{ minHeight: 200, padding: 10 }}>
                   {activeTab === "restaurant" && <Restaurant />}
