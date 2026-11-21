@@ -8,12 +8,13 @@
 //     (localStorage + облако Telegram через lib/storage), поэтому призовое
 //     «5 💎» нельзя получить повторно даже после чистки целей/привычек.
 //
-// Начисление идёт напрямую в кошелёк (loadWallet/saveWallet), а не через
-// addGems, чтобы награда достижения не путалась с наградами целей и привычек.
+// Начисление идёт через addGems() из lib/wallet — только так новое число
+// сразу разсылается всем подписчикам (шапка приложения) и баланс 💎
+// обновляется МОМЕНТАЛЬНО, без перезагрузки страницы.
 // ============================================================================
 
 import { loadJSON, saveJSON } from "./storage";
-import { loadWallet, saveWallet } from "./wallet";
+import { addGems } from "./wallet";
 
 const ACH_KEY = "mb-achievements-v1"; // базовое имя ключа (приклеивается id TG)
 
@@ -63,10 +64,9 @@ export function unlockAchievement(id: string): boolean {
   unlocked.push(id);
   saveJSON(ACH_KEY, { unlocked } satisfies AchStore);
 
-  // Начисляем 5 💎 напрямую в кошелёк (без addGems — это не награда цели/привычки)
-  const w = loadWallet();
-  w.gems = Math.max(0, w.gems + ACH_GEMS);
-  saveWallet(w);
+  // Начисляем 5 💎 через addGems(): он сохраняет кошелёк (localStorage +
+  // облако TG) И рассылает новый баланс подписчикам — шапка обновится сразу.
+  addGems(ACH_GEMS, `достижение «${id}»`);
 
   console.log(`[achievements] Открыто достижение «${id}» → +${ACH_GEMS} 💎`);
   emit(unlocked);

@@ -8,7 +8,7 @@
 // ЗАПРЕЩЕНЫ (иначе данные одного пользователя увидит другой).
 // ============================================================================
 
-import { retrieveLaunchParams } from "@telegram-apps/sdk"; // официальный SDK мини-приложений
+import { retrieveLaunchParams, init } from "@telegram-apps/sdk"; // официальный SDK мини-приложений
 import {
   isCloudStorageSupported,
   setCloudStorageItem,
@@ -18,6 +18,76 @@ import {
 
 /** Имя текущего пользователя Telegram или null, если мы не внутри TG. */
 let tgUserId: string | null = null;
+
+/* ---------- СОБЫТИЙНАЯ ШИНА ЗАПИСЕЙ ----------
+   Каждый успешный saveJSON() оповещает подписчиков (например, плашку
+   о новом достижении в components/AchievementToast). Так уведомление
+   появляется мгновенно, без перезагрузки страницы. */
+type SaveListener = (baseKey: string, value: unknown) => void;
+const saveListeners = new Set<SaveListener>();
+
+export function onStorageSave(fn: SaveListener): () => void {
+  saveListeners.add(fn);
+  return () => saveListeners.delete(fn);
+}
+
+/* ---------- ОБЛАКО TELEGRAM: ОДНОРАЗОВЫЕ СИНХРОНИЗАЦИИ ----------
+   Важно: методы облака работают ТОЛЬКО после init() всего SDK.
+   Без инициализации isCloudStorageSupported() возвращает false, записи
+   в облако молча не происходили — поэтому на ПК данные не подтягивались
+   к тому же аккаунту, что играл на телефоне. */
+
+/** Отправить свежие локальные данные всех ключей в облако Telegram. */
+async function pushAllToCloud(bases: string[]): Promise<void> {
+  if (!tgUserId || !isCloudStorageSupported()) return;
+  for (const base of bases) {
+    const key = makeKey(base);
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
+    try {
+      await setCloudStorageItem(key, raw);
+    } catch { /* облако недоступно — не критично */ }
+  }
+  console.log("[storage] Локальные данные отправлены в облако Telegram");
+}
+
+/**
+ * Полная синхронизация с облаком при каждом запуске:
+ *   • для каждого ключа сравниваем локальную копию и облачную;
+ *   • есть только одна из них — эта копия «новее» (её создало другое
+ *     устройство) → сохраняем у себя;
+ *   • обе есть и различаются → выбираем ту, где больше данных
+ *     (длиннее JSON-строка), и отправляем её в облако, чтобы
+ *     устройства сошлись на общем прогрессе.
+ * Возвращает true, если из облака удалось что-то заполучить.
+ */
+async function syncWithCloud(bases: string[]): Promise<boolean> {
+  if (!tgUserId || !isCloudStorageSupported()) return false;
+  let restored = false;
+  for (const base of bases) {
+    const key = makeKey(base);
+    const local = localStorage.getItem(key);
+    let cloud: string | null = null;
+    try {
+      cloud = (await getCloudStorageItem(key)) || null; // пусто -> ""
+    } catch { continue; } // ключа нет или облако недоступно
+    if (!local && cloud) {
+      localStorage.setItem(key, cloud);
+      restored = true;
+      console.log("[storage] Данные восстановлены из облака Telegram:", base);
+    } else if (local && cloud && local !== cloud) {
+      // Разные копии на разных устройствах — побеждает «богатейшая»
+      if (cloud.length > local.length) {
+        localStorage.setItem(key, cloud);
+        restored = true;
+        console.log("[storage] Облачная копия новее локальной:", base);
+      } else {
+        try { await setCloudStorageItem(key, local); } catch { /* ок */ }
+      }
+    }
+  }
+  return restored;
+}
 
 /* ---------- СПОСОБ 1: читаем id прямо из URL запуска ----------
    Telegram открывает мини-апп со ссылкой вида:
@@ -60,6 +130,15 @@ async function waitForWebApp(): Promise<any> {
  *   3) классический window.Telegram.WebApp.initDataUnsafe.user.
  */
 export async function initTelegramUser(): Promise<string | null> {
+  /* Инициализируем SDK (нужен ли он вообще решаем по параметрам запуска).
+     БЕЗ init() все методы облачного хранилища Telegram недоступны:
+     isCloudStorageSupported() = false и синхронизация молча не работает. */
+  if (inTelegram()) {
+    try { init(); } catch (e) {
+      console.log("[storage] SDK уже инициализирован или недоступен:", e);
+    }
+  }
+
   // СПОСОБ 1
   tgUserId = readIdFromUrl();
   if (tgUserId) {
