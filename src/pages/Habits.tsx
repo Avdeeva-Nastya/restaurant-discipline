@@ -94,9 +94,13 @@ export default function Habits() {
   /* ---------- ВЫЧИСЛЯЕМЫЕ ВЕЛИЧИНЫ (useMemo) ---------- */
   const today = todayStr();
 
-  // Активные = серия ещё не закрыта до конца. Именно их лимит: 3 шт.
+  // Завершённые (серия полностью закрыта) — в лимит НЕ входят.
+  const isComplete = (h: Habit) => h.streak >= h.target;
+
+  // Активные = незакрытые привычки. Именно их лимит: 3 шт.
+  // Если 2 из 3 серий закрыты — можно добавить ещё две новые.
   const activeCount = useMemo(
-    () => habits.filter(h => h.streak < h.target).length,
+    () => habits.filter(h => !isComplete(h)).length,
     [habits],
   );
   const canAdd = activeCount < MAX_ACTIVE;
