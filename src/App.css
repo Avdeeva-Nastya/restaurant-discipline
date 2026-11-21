@@ -62,10 +62,6 @@ body { background: #15100C; -webkit-font-smoothing: antialiased; }
 .mb-scroll::-webkit-scrollbar-thumb:hover { background: #C9AE6E; }
 .mb-page { animation: mbUp .35s cubic-bezier(.22,1,.36,1) both; display: flex; flex-direction: column; gap: 9px; }
 
-/* --- Информационные чипы  --- */
-.mb-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.mb-chip { display: flex; align-items: center; gap: 5px; background: #FFFBEE; border: 2px solid var(--cream3); border-radius: 9px; padding: 4px 8px; font-size: 11px; font-weight: 800; }
-.mb-chip b { font-weight: 900; color: var(--green-deep); }
 .mb-note { background: var(--cream2); border-radius: 11px; padding: 8px 10px; font-size: 11px; font-weight: 700; color: var(--ink-soft); line-height: 1.5; }
 .mb-note b { color: var(--green-deep); font-weight: 900; }
 
