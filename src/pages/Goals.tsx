@@ -205,9 +205,9 @@ export default function Goals() {
           >
             <span className="gl-check">{g.done ? "✔" : ""}</span>
             <span className="gl-text">{g.text}</span>
-            {g.reward > 0
-              ? <span className="gl-reward">💎{g.reward}</span>
-              : <span className="gl-reward free" title={`Цель №${i + 1}: награду получают только первые ${REWARD_SLOTS} цели дня`}>без 💎</span>}
+            {/* награду показываем только у призовых целей (первые 3);
+                остальные — пусто, ничего не пишем */}
+            {g.reward > 0 && <span className="gl-reward">💎{g.reward}</span>}
             {!g.done && (
               <button
                 type="button"
@@ -224,9 +224,7 @@ export default function Goals() {
           <div key={g.id} className={"gl-card late" + (g.reward === 0 ? " nofee" : "")} title="Цель из прошлого дня">
             <span className="gl-check">!</span>
             <span className="gl-text">{g.text}</span>
-            {g.reward > 0
-              ? <span className="gl-reward">💎{LATE_REWARD_GEMS}</span>
-              : <span className="gl-reward free">без 💎</span>}
+            {g.reward > 0 && <span className="gl-reward">💎{LATE_REWARD_GEMS}</span>}
             <button
               type="button"
               className="gl-mark-late"

@@ -223,23 +223,26 @@ export default function Habits() {
                 </div>
               </div>
 
-              {/* Круглая кнопка отметки дня: ✔ = сегодня закрыто */}
-              <button
-                type="button"
-                className={"hb-mark" + (markedToday ? " on" : "")}
-                title={markedToday ? "Снять отметку за сегодня" : "Отметить: сделано сегодня"}
-                onClick={() => markToday(h.id)}
-              >✔</button>
-
-              {/* Крестик: удалить можно только привычку, созданную сегодня */}
-              {h.created === today && !markedToday && (
+              {/* Правая колонка: галочка и крестик стоят вертикально, чтобы занимать меньше места */}
+              <div className="hb-actions">
+                {/* Круглая кнопка отметки дня: ✔ = сегодня закрыто */}
                 <button
                   type="button"
-                  className="hb-del"
-                  title="Удалить привычку"
-                  onClick={() => deleteHabit(h.id)}
-                >✕</button>
-              )}
+                  className={"hb-mark" + (markedToday ? " on" : "")}
+                  title={markedToday ? "Снять отметку за сегодня" : "Отметить: сделано сегодня"}
+                  onClick={() => markToday(h.id)}
+                >✔</button>
+
+                {/* Крестик: удалить можно только привычку, созданную сегодня */}
+                {h.created === today && !markedToday && (
+                  <button
+                    type="button"
+                    className="hb-del"
+                    title="Удалить привычку"
+                    onClick={() => deleteHabit(h.id)}
+                  >✕</button>
+                )}
+              </div>
             </div>
           );
         })}
