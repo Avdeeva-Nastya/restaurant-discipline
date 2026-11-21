@@ -21,7 +21,7 @@
   padding: 9px 11px; background: #FFFBEE;
   border: 2px solid var(--cream3); border-radius: 13px;
   box-shadow: 0 4px 10px -6px rgba(74,55,40,.35);
-  opacity: .75; /* закрытое достижение — приглушённое */
+  opacity: .75; /* незакрытое достижение — приглушённое */
 }
 .pf-card.done {
   opacity: 1;

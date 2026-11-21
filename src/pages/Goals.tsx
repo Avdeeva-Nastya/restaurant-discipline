@@ -96,9 +96,6 @@ export default function Goals() {
     [overdue, goals, justDoneLate],
   );
   const leftToday = Math.max(0, MAX_PER_DAY - todays.length);
- 
-
-
 
   /* ---------- ДЕЙСТВИЯ ---------- */
 
@@ -130,8 +127,8 @@ export default function Goals() {
       }
       unlockAchievement("first-goal"); // достижение «Первая цель» (+5 💎, один раз)
       return { ...g, done: true };          // отмечаем выполненной навсегда
-    }));                                     // ← ВОТ ЭТОЙ СКОБКИ У ВАС НЕ ХВАТАЛО
-  }                                           // ← и закрывающей скобки самой функции
+    }));
+  }
 
   /* Просроченная цель: награда падает до 1 💎, платим только при первом
      выполнении (paid). Бесплатные цели (reward=0) остаются без награды. */

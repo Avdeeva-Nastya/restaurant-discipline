@@ -60,7 +60,7 @@ export function saveWallet(w: Wallet): void {
 type Listener = (gems: number) => void;
 const listeners = new Set<Listener>(); // набор подписчиков (шапка, профиль...)
 
-// Подписаться на изменения баланса. Возвращает функцию «отписаться».
+// Подписаться на изменения баланса. Возвращает функция «отписаться».
 export function onWalletChange(fn: Listener): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);
@@ -81,10 +81,6 @@ export function addGems(amount: number, reason = ""): void {
   // РЕЙТИНГ ⭐ больше НЕ привязан к начислениям — пока это простая
   // переменная (см. lib/rating.ts), правила начисления появятся позже.
 }
-
-
-
-
 
 /* Отметить цель как «оплаченную». Вызывается в момент ПЕРВОГО выполнения.
    Если id уже в списке paid — возвращаем false: награду выдавать нельзя
