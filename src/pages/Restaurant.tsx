@@ -2,28 +2,23 @@ import './Restaurant.css'
 
 /**
  * Страница «Ресторан».
- * Пол зала заполнен паттернами пользователя (изображение_2026-11-22_171551594.png):
- * снизу — плитка, сверху — дерево. См. .hall-floor в Restaurant.css.
+ * Вся страница поделена ровно на две части (паттерны пользователя
+ * из изображения_2026-11-22_171551594.png):
+ *   ВЕРХНЯЯ ПОЛОВИНА — деревянный пол (floor-wood.png)
+ *   НИЖНЯЯ ПОЛОВИНА  — плитка (floor-tile.png)
+ * Каждый паттерн замощает свою половину целиком, без полос.
  */
 export default function Restaurant() {
   return (
     <div className="rs-wrap">
       <div className="rs-scene">
-        {/* ЗАЛ: пол = дерево сверху + плитка снизу (CSS-паттерны) */}
-        <div className="zone-hall">
+        {/* Верхняя половина страницы — дерево */}
+        <div className="floor-half floor-half--wood">
           <span className="zone-label">Зал</span>
         </div>
 
-        {/* разделитель-стена */}
-        <div className="divider">
-          <div className="divider-window">
-            <span className="divider-window-icon">🍳</span>
-          </div>
-        </div>
-
-        {/* КУХНЯ: пол = плитка */}
-        <div className="zone-kitchen">
-          <div className="kitchen-floor" />
+        {/* Нижняя половина страницы — плитка */}
+        <div className="floor-half floor-half--tile">
           <span className="zone-label">Кухня</span>
         </div>
       </div>

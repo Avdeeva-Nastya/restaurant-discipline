@@ -39,107 +39,42 @@
 }
 
 /* ════════════════════════════════════
-   ПОЛ ЗАЛА — паттерны из изображения пользователя:
-   снизу (ближе к зрителю) — плитка, сверху — дерево.
+   ПОЛ — страница делится ровно на две половины:
+   верхняя — дерево, нижняя — плитка.
    Паттерны вырезаны из "изображение_2026-11-22_171551594.png"
-   и лежат в public/floor-tile.png и public/floor-wood.png
+   и лежат в public/floor-wood.png и public/floor-tile.png
    ════════════════════════════════════ */
-.hall-floor {
-  position: absolute;
-  inset: 0;
-  background-color: #8a5a2a; /* подложка в тон, чтобы не мелькали дырки */
-  /* два слоя: нижний — плитка (закрывает всю зону), верхний — дерево (только верхняя часть) */
-  background-image:
-    url('/floor-wood.png'),
-    url('/floor-tile.png');
-  background-repeat: repeat, repeat;
-  background-size: auto 46px, auto 46px;
-  background-position:
-    left top,            /* дерево — сверху зала */
-    left bottom;         /* плитка — снизу зала */
+.floor-half {
+  position: relative;
+  flex: 1 1 50%;              /* каждая половина занимает ровно половину сцены */
+  min-height: 0;
+  overflow: hidden;
+  background-repeat: repeat;
+  background-size: auto 46px; /* масштаб плиток/досок (можно менять) */
 }
 
-/* мягкий переход между зонами пола */
-.hall-floor::after {
+/* Верхняя половина — деревянный пол */
+.floor-half--wood {
+  background-color: #8a5a2a;
+  background-image: url('/floor-wood.png');
+  background-position: left top;
+}
+
+/* Нижняя половина — плитка */
+.floor-half--tile {
+  background-color: #b0703a;
+  background-image: url('/floor-tile.png');
+  background-position: left top;
+}
+
+/* тонкая линия стыка двух покрытий */
+.floor-half--wood::after {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(55% - 12px);
-  height: 24px;
-  background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0));
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: rgba(0,0,0,0.35);
   pointer-events: none;
-}
-
-/* ── Общий лейбл зоны ── */
-.zone-label {
-  position: absolute;
-  top: 4px;
-  left: 8px;
-  font-size: 6px;
-  color: rgba(255,255,255,0.3);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  z-index: 10;
-  pointer-events: none;
-}
-
-/* ════════════════════════════════════
-   ЗАЛ — верхние 55%
-   ════════════════════════════════════ */
-.zone-hall {
-  position: relative;
-  flex: 0 0 55%;
-  overflow: hidden;
-  background: #8a5a2a;
-}
-
-/* ── Столики ── */
-.table-unit {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  z-index: 2;
-}
-
-.table-top {
-  width: 48px;
-  height: 30px;
-  background: var(--wood);
-  border-top: 3px solid #c08040;
-  border-left: 2px solid #c08040;
-  border-right: 2px solid #5c3010;
-  border-bottom: 4px solid #5c3010;
-}
-
-.table-chairs { display: flex; gap: 10px; }
-
-.chair {
-  width: 16px;
-  height: 12px;
-  background: var(--green);
-  border-top: 2px solid var(--green-light);
-  border-right: 2px solid #2a4a30;
-  border-bottom: 3px solid #2a4a30;
-}
-
-/* ── Декор ── */
-.decor {
-  position: absolute;
-  font-size: 20px;
-  z-index: 2;
-  transform: translate(-50%, -50%);
-  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
-}
-.decor.plant { animation: plantSway 3s ease-in-out infinite; }
-
-@keyframes plantSway {
-  0%,100% { transform: translate(-50%,-50%) rotate(0deg); }
-  33%     { transform: translate(-50%,-50%) rotate(3deg); }
-  66%     { transform: translate(-50%,-50%) rotate(-3deg); }
 }
 
 /* ── Гости ── */
@@ -276,17 +211,6 @@
   flex-direction: column;
   gap: 6px;
   padding: 6px 8px 4px;
-}
-
-/* ── Пол кухни: та же плитка, что снизу зала (паттерн пользователя) ── */
-.kitchen-floor {
-  position: absolute;
-  inset: 0;
-  background-color: #b0703a;
-  background-image: url('/floor-tile.png');
-  background-repeat: repeat;
-  background-size: auto 46px;
-  background-position: left top;
 }
 
 /* ── Строки рабочих поверхностей ── */
