@@ -156,12 +156,15 @@ export default function Goals() {
     /* Карточка остаётся в списке на ~900 мс: сначала показываем галочку
        и зелёный цвет, затем проигрываем анимацию исчезновения. */
     setJustDoneLate(id);
-    setTimeout(() => setLateGone(true), 650);        // старт анимации исчезновения
+    setTimeout(() => setLateGone(true), 700);        // старт анимации исчезновения
+    /* Анимация схлопывания длится 450 мс (+ запас 100 мс) — только после её
+       полного окончания убираем карточку из списка, иначе она «обрезается»
+       на середине перехода (дёргается). */
     setTimeout(() => {                               // удаление после конца анимации
       setJustDoneLate(null);
       setLateGone(false);
       deleteGoal(id);
-    }, 950);
+    }, 700 + 450 + 100);
   }
 
   // Удаление цели. Выполненные НЕ удаляем — иначе можно «переиграть» награду.
@@ -229,14 +232,21 @@ export default function Goals() {
 
         {/* .map превращает каждый объект цели в карточку.
             Индекс i — порядок создания: цели с i >= REWARD_SLOTS (4-я и позже)
-            помечаются классом "nofee" — у них награда 0 💎. */}
+            помечаются классом "nofee" — у них награда 0 💎.
+            Выполнение засчитывается ТОЛЬКО кликом по чекбоксу (.gl-check),
+            а не по всей карточке. */}
         {todays.map((g, i) => (
           <div
             key={g.id}
             className={"gl-card" + (g.done ? " done locked" : "") + (i >= REWARD_SLOTS ? " nofee" : "")}
-            onClick={() => toggleGoal(g.id)}   // клик внутри сам отфильтрует done-цели
           >
-            <span className="gl-check">{g.done ? "✔" : ""}</span>
+            <span
+              className="gl-check"
+              role="checkbox"
+              aria-checked={g.done}
+              title={g.done ? "Цель выполнена" : "Отметить цель выполненной"}
+              onClick={() => toggleGoal(g.id)}   // клик внутри сам отфильтрует done-цели
+            >{g.done ? "✔" : ""}</span>
             <span className="gl-text">{g.text}</span>
             {/* награду показываем только у призовых целей (первые 3);
                 остальные — пусто, ничего не пишем */}
@@ -263,11 +273,25 @@ export default function Goals() {
               (g.done && lateGone ? " gone" : "")          // затем плавно схлопывается и исчезает
             }
             title="Цель из прошлого дня"
-            onClick={() => completeLate(g.id)}   // клик по карточке = выполнить с опозданием
           >
-            {/* обычный чекбокс-кружок слева: пустой → при клике станет ✔ */}
-            <span className="gl-check">{g.done ? "✔" : ""}</span>
+            {/* чекбокс-кружок слева: пустой → при клике станет ✔
+                (выполнение засчитывается только кликом по нему) */}
+            <span
+              className="gl-check"
+              role="checkbox"
+              aria-checked={g.done}
+              title={g.done ? "Цель выполнена" : "Отметить цель выполненной"}
+              onClick={() => completeLate(g.id)}
+            >{g.done ? "✔" : ""}</span>
             <span className="gl-text">{g.text}</span>
+            {/* Показываем, сколько 💎 дадут за просроченную цель:
+                1 💎 — если при создании у неё была награда;
+                перечёркнутый бейдж — если награды не было (цель была не в первых 3) */}
+            {g.reward > 0 ? (
+              <span className="gl-reward">💎{LATE_REWARD_GEMS}</span>
+            ) : (
+              <span className="gl-reward gl-reward-none" title="За эту цель гемы не начисляются — награда была только у первых целей дня">💎0</span>
+            )}
             <button
               type="button"
               className="gl-del"

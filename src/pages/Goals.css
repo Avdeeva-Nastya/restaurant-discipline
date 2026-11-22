@@ -99,13 +99,13 @@
   border: 2px solid var(--cream3);
   border-radius: 13px;
   box-shadow: 0 4px 10px -6px rgba(74, 55, 40, .35);
-  cursor: pointer;               /* вся карточка кликабельна = галочка */
+  cursor: default;               /* выполнение — только по чекбоксу (см. .gl-check) */
   user-select: none;
   transition: background 0.15s, border-color 0.15s;
 }
-.gl-card:hover { background: var(--cream2); }
 
-/* Чекбокс — круглая кнопка слева */
+/* Чекбокс — круглая кнопка слева. Клик именно по ней засчитывает
+   выполнение цели (не по всей карточке). */
 .gl-check {
   flex: none;
   width: 28px;
@@ -119,8 +119,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background .15s;
+  cursor: pointer;               /* кликабельна только галочка */
+  transition: background .15s, transform .12s;
 }
+.gl-check:hover { transform: scale(1.1); }
+.gl-card.done .gl-check { cursor: default; }        /* выполненную не разотметить */
 
 /* Текст цели — нормальный читаемый размер */
 .gl-text {
@@ -168,8 +171,14 @@
   border-color: #E8833A;
   background: #FBE3D3;
 }
-.gl-card.late .gl-check { border-color: #E8833A; color: #A4501F; background: #fff; }
+.gl-card.late .gl-check { border-color: #E8833A; color: #A4501F; background: #fff; cursor: pointer; }
 .gl-card.late .gl-text  { color: #A4501F; }
+
+/* Бейдж «💎0» у просроченной цели без награды (не была в первых 3) */
+.gl-reward-none {
+  opacity: .55;
+  text-decoration: line-through;
+}
 
 /* ── Анимация «выполнено с опозданием»: карточка на мгновение становится
    зелёной с галочкой (glPopLate), затем плавно схлопывается и исчезает
@@ -179,8 +188,6 @@
   background: var(--green-soft);
   animation: glPopLate .25s ease;
   max-height: 120px;           /* базовое значение для плавного схлопывания */
-  transition: opacity .3s ease, transform .3s ease,
-              max-height .3s ease, padding .3s ease, border-width .3s ease;
 }
 .gl-card.justdone .gl-check {
   background: var(--green);
@@ -194,16 +201,34 @@
   55%  { transform: scale(1.02); }
   100% { transform: scale(1); }
 }
-/* Финальный кадр: карточка схлопывается и уезжает вправо */
+/* Финальная фаза: ОДНА синхронная анимация на все свойства (450 мс,
+   плавный ease-in-out) — прозрачность, сдвиг вправо и схлопывание высоты.
+   Раньше height/padding шли через transition со скачком border-width,
+   из-за чего исчезновение выглядело рваным. Хронометраж удаления карточки
+   из DOM (Goals.tsx) = 700 + 450 + 100 мс, т.е. строго после конца анимации. */
 .gl-card.justdone.gone {
-  opacity: 0;
-  transform: translateX(24px) scale(.96);
-  max-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  margin-bottom: -8px;          /* компенсируем gap списка, чтобы карточки «съезжались» */
-  border-width: 0;
-  overflow: hidden;
+  animation: glVanish .45s cubic-bezier(.4, 0, .2, 1) forwards;
+  pointer-events: none;        /* не мешаем кликам по соседним карточкам */
+}
+@keyframes glVanish {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    max-height: 120px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    margin-bottom: 0;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(24px) scale(.96);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: -8px;        /* компенсируем gap списка, чтобы карточки «съезжались» */
+    border-width: 0;
+    overflow: hidden;
+  }
 }
 
 /* Кнопка-крестик: удалить цель (можно только НЕ выполненную) */
@@ -304,5 +329,6 @@
 /* Забота о тех, кого укачивает: отключаем анимацию по настройке системы */
 @media (prefers-reduced-motion: reduce) {
   .gl-perfect { animation: none; }
-  .gl-card.justdone { animation: none; transition: none; }
+  .gl-card.justdone,
+  .gl-card.justdone.gone { animation: none; transition: none; }
   }
