@@ -31,6 +31,115 @@ import {
 /** Имя текущего пользователя Telegram или null, если мы не внутри TG. */
 let tgUserId: string | null = null;
 
+/* ---------- НИЗКОУРОВНЕВЫЕ ОБЛАЧНЫЕ ОПЕРАЦИИ (2 канала) ----------
+   Канал A: window.Telegram.WebApp.CloudStorage — работает ВСЕГДА внутри
+   мини-приложения, даже если SDK-обёртка не инициализирована (именно
+   из-за этого раньше синхронизация молча не работала и в консоли не
+   было никаких логов).
+   Канал B: @telegram-apps/sdk — запасной.
+   Операции с облаком могут «висеть» вечно, если мост не ответил, —
+   поэтому каждое обращение ограничено таймаутом 4 секунды. */
+
+type AnyWebApp = {
+  CloudStorage?: {
+    getItem: (k: string, cb: (e: string | null, v: string | null) => void) => void;
+    setItem: (k: string, v: string, cb: (e: string | null, r?: boolean) => void) => void;
+    removeItem: (k: string, cb: (e: string | null, r?: boolean) => void) => void;
+  };
+};
+
+function rawW(): AnyWebApp | null {
+  return ((window as any).Telegram?.WebApp) ?? null;
+}
+
+/** Доступно ли облако ХОТЬ КАКИМ-ТО каналом (WebApp напрямую или SDK). */
+function cloudAvailable(): boolean {
+  try { if (rawW()?.CloudStorage) return true; } catch { /* ок */ }
+  try { if (isCloudStorageSupported()) return true; } catch { /* SDK не готов */ }
+  return false;
+}
+
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
+  return Promise.race([
+    p,
+    new Promise<null>(r => setTimeout(() => r(null), ms)),
+  ]);
+}
+
+async function cloudGetRaw(key: string): Promise<string | null> {
+  // Канал A
+  const w = rawW();
+  if (w?.CloudStorage) {
+    try {
+      const val = await withTimeout(
+        new Promise<string | null>((res, rej) =>
+          w.CloudStorage!.getItem(key, (err, v) => (err ? rej(err) : res(v))),
+        ),
+        4000,
+      );
+      if (val != null) return val;
+    } catch (e) {
+      console.warn("[storage] CloudStorage.getItem (канал WebApp) ошибка:", e);
+    }
+  }
+  // Канал B
+  try {
+    if (isCloudStorageSupported()) {
+      const val = await withTimeout(getCloudStorageItem(key), 4000);
+      if (val != null) return val;
+    }
+  } catch (e) {
+    console.warn("[storage] SDK getCloudStorageItem ошибка:", e);
+  }
+  return null;
+}
+
+async function cloudSetRaw(key: string, value: string): Promise<boolean> {
+  // Канал A
+  const w = rawW();
+  if (w?.CloudStorage) {
+    try {
+      const ok = await withTimeout(
+        new Promise<boolean>((res, rej) =>
+          w.CloudStorage!.setItem(key, value, (err, r) => (err ? rej(err) : res(r !== false))),
+        ),
+        4000,
+      );
+      if (ok) return true;
+    } catch (e) {
+      console.warn("[storage] CloudStorage.setItem (канал WebApp) ошибка:", e);
+    }
+  }
+  // Канал B
+  try {
+    if (isCloudStorageSupported()) {
+      const ok = await withTimeout(setCloudStorageItem(key, value).then(() => true), 4000);
+      if (ok) return true;
+    }
+  } catch (e) {
+    console.warn("[storage] SDK setCloudStorageItem ошибка:", e);
+  }
+  return false;
+}
+
+async function cloudDelRaw(key: string): Promise<void> {
+  const w = rawW();
+  if (w?.CloudStorage) {
+    try {
+      await withTimeout(
+        new Promise<boolean>((res, rej) =>
+          w.CloudStorage!.removeItem(key, (err, r) => (err ? rej(err) : res(r !== false))),
+        ),
+        4000,
+      );
+      return;
+    } catch { /* пробуем SDK */ }
+  }
+  try {
+    if (isCloudStorageSupported()) await withTimeout(deleteCloudStorageItem(key), 4000);
+  } catch { /* игнорируем */ }
+}
+
 /* ---------- СОБЫТИЙНАЯ ШИНА ЗАПИСЕЙ ----------
    Каждый успешный saveJSON() оповещает подписчиков (например, плашку
    о новом достижении в components/AchievementToast). Так уведомление
@@ -51,7 +160,7 @@ export function onStorageSave(fn: SaveListener): () => void {
 
 /** Отправить все непустые локальные данные в облако (разово, после запуска). */
 export async function pushAllToCloud(bases: string[]): Promise<void> {
-  if (!tgUserId || !isCloudStorageSupported()) return;
+  if (!tgUserId || !cloudAvailable()) return;
   const blob = await readBlob();
   let pushed = 0;
   for (const base of bases) {
@@ -86,7 +195,7 @@ interface Blob {
 
 async function readBlob(): Promise<Blob> {
   try {
-    const raw = await getCloudStorageItem(CLOUD_BLOB_KEY);
+    const raw = await cloudGetRaw(CLOUD_BLOB_KEY);
     if (!raw) return { data: {}, ts: 0 };
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object" && parsed.data) {
@@ -99,12 +208,8 @@ async function readBlob(): Promise<Blob> {
 /** Запись в облако с повторами и ожиданием ответа сервера. */
 async function cloudSet(key: string, value: string): Promise<boolean> {
   for (let attempt = 0; attempt < 4; attempt++) {
-    try {
-      await setCloudStorageItem(key, value);
-      return true;
-    } catch {
-      await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
-    }
+    if (await cloudSetRaw(key, value)) return true;
+    await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
   }
   return false;
 }
@@ -136,11 +241,16 @@ function hasContent(v: unknown): boolean {
  * Возвращает true, если из облака удалось что-то заполучить.
  */
 export async function syncWithCloud(bases: string[]): Promise<boolean> {
-  if (!tgUserId || !isCloudStorageSupported()) return false;
+  console.log("[storage] ⚡ syncWithCloud: запущен. id=", tgUserId, ", cloudAvailable=", cloudAvailable());
+  if (!tgUserId || !cloudAvailable()) {
+    console.warn("[storage] ⚡ Синхронизация невозможна: нет id или облако недоступно");
+    return false;
+  }
   const blob = await readBlob();
+  console.log("[storage] ⚡ Облачный blob получен: ts=", blob.ts, ", ключей=", Object.keys(blob.data).length);
   const myTs = Number(localStorage.getItem(CLOUD_TS_LOCAL)) || 0;
-  if (blob.ts === 0) return false; // в облаке пока ничего нет
-  if (blob.ts < myTs) return false; // локально свежее — трогать нечего
+  if (blob.ts === 0) { console.log("[storage] ⚡ В облаке пока пусто — ничего тянуть"); return false; }
+  if (blob.ts < myTs) { console.log("[storage] ⚡ Локальная копия свежее облачной (", myTs, ">", blob.ts, ") — пропускаю"); return false; }
   let restored = false;
   for (const base of bases) {
     const raw = blob.data[base];
@@ -193,12 +303,13 @@ export function startBackgroundSync(bases: string[]): void {
 
 /** Одна быстрая проверка: не появилось ли в облаке более свежий blob? */
 async function pullOnce(bases: string[]): Promise<string[]> {
-  if (!tgUserId || !isCloudStorageSupported()) return [];
+  if (!tgUserId || !cloudAvailable()) return [];
   if (pulling || pushing) return [];
   pulling = true;
   try {
     const myTs = Number(localStorage.getItem(CLOUD_TS_LOCAL)) || 0;
     const blob = await readBlob();
+    console.log(`[storage] 🔄 Фоновая сверка: облако ts=${blob.ts}, локальное ts=${myTs}`);
     if (blob.ts <= myTs) return []; // облако не новее — ничего не делаем
     localStorage.setItem(CLOUD_TS_LOCAL, String(blob.ts));
     const changed: string[] = [];
@@ -224,7 +335,7 @@ async function pullOnce(bases: string[]): Promise<string[]> {
 
 /** Отправить накопившиеся локальные изменения в облако (в фоне, пачкой). */
 function schedulePush(base: string): void {
-  if (!tgUserId || !isCloudStorageSupported()) return;
+  if (!tgUserId || !cloudAvailable()) return;
   pendingPush.add(base);
   if (pushTimer != null) return; // уже запланировано
   pushTimer = window.setTimeout(async () => {
@@ -395,12 +506,12 @@ export function saveJSON(base: string, value: unknown): void {
  *  локальную и облачную копии и выбирает «богатейшую». Оставлено для
  *  совместимости со старыми вызовами. */
 export async function restoreFromCloud(bases: string[]): Promise<void> {
-  if (!tgUserId || !isCloudStorageSupported()) return;
+  if (!tgUserId || !cloudAvailable()) return;
   for (const base of bases) {
     const key = makeKey(base);
     if (localStorage.getItem(key)) continue; // локально всё уже есть
     try {
-      const cloudRaw = await getCloudStorageItem(key);
+      const cloudRaw = await cloudGetRaw(key);
       if (cloudRaw && !localStorage.getItem(key)) {
         localStorage.setItem(key, cloudRaw);
         console.log("[storage] Данные восстановлены из облака Telegram:", base);
@@ -428,9 +539,7 @@ export function migrateLegacyKeys(bases: string[]): void {
       localStorage.removeItem(base);               // убираем общий ключ навсегда
       // Удаляем и общую копию из облака TG: иначе на другом устройстве
       // restoreFromCloud может стянуть чужие/устаревшие данные.
-      if (isCloudStorageSupported()) {
-        try { void deleteCloudStorageItem(base).catch(() => {}); } catch { /* не страшно */ }
-      }
+      void cloudDelRaw(base);
       console.log("[storage] Старые данные перенесены под Telegram-аккаунт:", base);
     }
   }
